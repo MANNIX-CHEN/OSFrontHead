@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.effect.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@../css/global.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <children>
+      <Pane prefHeight="70.0" prefWidth="600.0" stylesheets="@../css/hd.css">
+         <children>
+            <MenuBar layoutY="2.0" prefHeight="25.0" styleClass="main_pane_width">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Delete" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <Label layoutX="28.0" layoutY="42.0" prefHeight="17.0" prefWidth="41.0" text="目录">
+               <font>
+                  <Font size="16.0" />
+               </font></Label>
+            <TextField layoutX="107.0" layoutY="42.0" styleClass="index_text_filed" />
+         </children>
+      </Pane>
+      <SplitPane dividerPositions="0.2" prefHeight="354.0" prefWidth="1024.0" styleClass="body_height" stylesheets="@../css/body.css">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="100.0">
+               <children>
+                  <TreeView layoutX="6.0" layoutY="36.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="338.0" prefWidth="713.0">
+               <children>
+                  <TabPane layoutX="194.0" layoutY="53.0" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <tabs>
+                      <Tab text="文件">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
+                                 <children>
+                                    <Button fx:id="onButton" layoutX="385.0" layoutY="89.0" mnemonicParsing="false" onAction="#onButtonClick" text="Button" />
+                                 </children></AnchorPane>
+                        </content>
+                      </Tab>
+                      <Tab text="磁盘分配情况">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_disc_distribution" />
+                        </content>
+                      </Tab>
+                    </tabs>
+                  </TabPane>
+               </children>
+            </AnchorPane>
+        </items>
+         <VBox.margin>
+            <Insets top="15.0" />
+         </VBox.margin>
+      </SplitPane>
+      <TableView id="openFilesTable" prefHeight="200.0" prefWidth="200.0">
+        <columns>
+          <TableColumn prefWidth="75.0" text="文件名称" />
+          <TableColumn prefWidth="75.0" text="文件路径" />
+            <TableColumn prefWidth="75.0" text="起始盘块号" />
+            <TableColumn prefWidth="75.0" text="文件长度" />
+            <TableColumn prefWidth="75.0" text="操作类型" />
+        </columns>
+      </TableView>
+   </children>
+   <styleClass>
+      <String fx:value="global_font" />
+      <String fx:value="main_pane_width" />
+      <String fx:value="main_pane_height" />
+   </styleClass>
+</VBox>

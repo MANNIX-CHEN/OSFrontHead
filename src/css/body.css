@@ -1,0 +1,9 @@
+.body_height{
+    -fx-pref-height:360;
+}
+.cur_catalogue{
+    //-fx-background-color: green;
+}
+.cur_disc_distribution{
+    //-fx-background-color: blue;
+}
