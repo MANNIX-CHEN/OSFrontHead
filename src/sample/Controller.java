@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.event.ActionEvent;
 import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 
 import javax.swing.text.html.ImageView;
@@ -16,6 +18,8 @@ import javax.swing.text.html.ImageView;
 public class Controller {
 
     /*以下成员分别定义对应的主页面组件*/
+    @FXML
+    private AnchorPane filePane;
     @FXML
     private Button parentCat;
     @FXML
@@ -120,4 +124,8 @@ public class Controller {
         System.out.println(77777);
     }
 
+
+    public void panePress(MouseEvent mouseEvent) {
+        System.out.println(5555);
+    }
 }

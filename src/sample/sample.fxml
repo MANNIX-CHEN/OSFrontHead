@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.web.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.*?>
@@ -38,11 +41,11 @@
             <TextField layoutX="107.0" layoutY="42.0" styleClass="index_text_filed" />
          </children>
       </Pane>
-      <SplitPane dividerPositions="0.2" prefHeight="354.0" prefWidth="1024.0" styleClass="body_height" stylesheets="@../css/body.css">
+      <SplitPane dividerPositions="0.2" prefHeight="354.0" prefWidth="1024.0" stylesheets="@../css/body.css">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="100.0">
                <children>
-                  <TreeView layoutX="6.0" layoutY="36.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <TreeView fx:id="filesCatalogue" layoutX="6.0" layoutY="36.0" prefHeight="200.0" prefWidth="200.0" styleClass="leftbodyWidth" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
 
                </children>
@@ -53,15 +56,62 @@
                     <tabs>
                       <Tab text="文件">
                         <content>
-                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
+                          <AnchorPane fx:id="filePane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
                                  <children>
-                                    <Button fx:id="onButton" layoutX="385.0" layoutY="89.0" mnemonicParsing="false" onAction="#onButtonClick" text="Button" />
+                                    <FlowPane layoutX="274.0" layoutY="7.0" onMousePressed="#panePress" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <children>
+                                          <Button fx:id="parentCat" mnemonicParsing="false" onAction="#onButtonClick" />
+                                       </children>
+                                    </FlowPane>
                                  </children></AnchorPane>
                         </content>
                       </Tab>
                       <Tab text="磁盘分配情况">
                         <content>
-                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_disc_distribution" />
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_disc_distribution">
+                                 <children>
+                                    <GridPane fx:id="diskStatus" layoutX="256.0" layoutY="86.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                      <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                      </columnConstraints>
+                                      <rowConstraints>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                      </rowConstraints>
+                                       <children>
+                                          <Pane prefHeight="200.0" prefWidth="200.0" styleClass="fatPane">
+                                             <children>
+                                                <Label layoutX="181.0" layoutY="4.0" text="FAT表">
+                                                   <font>
+                                                      <Font size="16.0" />
+                                                   </font>
+                                                </Label>
+                                                <TableView fx:id="fatTable" layoutY="30.0" prefHeight="272.0" prefWidth="407.0" styleClass="fatTable">
+                                                  <columns>
+                                                    <TableColumn prefWidth="75.0" styleClass="fatCol" text="C1" />
+                                                    <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" styleClass="fatCol" text="C2" />
+                                                      <TableColumn prefWidth="75.0" text="C2">
+                                                         <styleClass>
+                                                            <String fx:value="fatCol" />
+                                                            <String fx:value="lastCol" />
+                                                         </styleClass>
+                                                      </TableColumn>
+                                                  </columns>
+                                                </TableView>
+                                             </children>
+                                             <opaqueInsets>
+                                                <Insets />
+                                             </opaqueInsets>
+                                          </Pane>
+                                          <PieChart fx:id="pieChart" styleClass="pieChart" title="磁盘占用情况" GridPane.columnIndex="1" />
+                                       </children>
+                                    </GridPane>
+                                 </children></AnchorPane>
                         </content>
                       </Tab>
                     </tabs>
@@ -72,14 +122,18 @@
          <VBox.margin>
             <Insets top="15.0" />
          </VBox.margin>
+         <styleClass>
+            <String fx:value="body_height" />
+            <String fx:value="body_background" />
+         </styleClass>
       </SplitPane>
-      <TableView id="openFilesTable" prefHeight="200.0" prefWidth="200.0">
+      <TableView id="openFilesTable" fx:id="openFilesTable" prefHeight="200.0" prefWidth="200.0" styleClass="footer" stylesheets="@../css/footer.css">
         <columns>
-          <TableColumn prefWidth="75.0" text="文件名称" />
-          <TableColumn prefWidth="75.0" text="文件路径" />
-            <TableColumn prefWidth="75.0" text="起始盘块号" />
-            <TableColumn prefWidth="75.0" text="文件长度" />
-            <TableColumn prefWidth="75.0" text="操作类型" />
+          <TableColumn prefWidth="75.0" styleClass="nameCol" text="文件名称" />
+          <TableColumn prefWidth="75.0" styleClass="pathCol" text="文件路径" />
+            <TableColumn prefWidth="75.0" styleClass="norCol" text="起始盘块号" />
+            <TableColumn prefWidth="75.0" styleClass="norCol" text="文件长度" />
+            <TableColumn prefWidth="75.0" styleClass="norCol" text="操作类型" />
         </columns>
       </TableView>
    </children>

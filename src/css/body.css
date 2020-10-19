@@ -7,3 +7,39 @@
 .cur_disc_distribution{
     //-fx-background-color: blue;
 }
+.leftbodyWidth{
+    -fx-pref-width: 200;
+}
+.fatTable{
+    -fx-pref-width: 405;
+    -fx-pref-height: 271;
+    -fx-translate-x: 1;
+    -fx-border-color: black white white white;
+}
+.fatPane{
+    -fx-border-width:1;
+    -fx-border-color:black;
+}
+.body_background{
+    -fx-background-color: white;
+}
+.pieChart{
+    -fx-border-color: black white;
+}
+.parentCat{
+    -fx-pref-width: 64;
+    -fx-pref-height: 64;
+    //-fx-background-color: white;
+    -fx-background-image:url("../img/parent_directory.png");
+}
+.blockCol{
+    -fx-border-width: 0 1 0 1;
+    -fx-border-color: white  #C0C0C0 white black;
+}
+.lastCol{
+    -fx-border-width:  0 1 0 0;
+    -fx-border-color: white  black white white;
+}
+.fatCol{
+    -fx-pref-width: 47.5;
+}
