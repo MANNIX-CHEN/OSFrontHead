@@ -2,16 +2,15 @@
     -fx-pref-height:360;
 }
 .cur_catalogue{
-    //-fx-background-color: green;
+    /*-fx-background-color: green;*/
 }
 .cur_disc_distribution{
-    //-fx-background-color: blue;
+    -fx-background-color: blue;
 }
 .leftbodyWidth{
     -fx-pref-width: 200;
 }
 .fatTable{
-    -fx-font-size: 12px;
     -fx-pref-width: 405;
     -fx-pref-height: 271;
     -fx-translate-x: 1;
@@ -28,10 +27,9 @@
     -fx-border-color: black white;
 }
 .parentCat{
-    -fx-translate-x: 100;
     -fx-pref-width: 64;
     -fx-pref-height: 64;
-    //-fx-background-color: white;
+    -fx-background-color: white;
     -fx-background-image:url("../img/parent_directory.png");
 }
 .blockCol{

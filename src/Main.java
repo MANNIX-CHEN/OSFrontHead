@@ -1,11 +1,10 @@
-package sample;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sample.Controller;
 
 import java.net.URL;
 
@@ -15,7 +14,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
 
-        URL location = getClass().getResource("sample.fxml");
+        URL location = getClass().getResource("sample/sample.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(location);
         fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());//不能使用静态读取方法
