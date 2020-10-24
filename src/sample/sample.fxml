@@ -13,7 +13,7 @@
 
 <VBox id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@../css/global.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
-      <Pane prefHeight="70.0" prefWidth="600.0" stylesheets="@../css/hd.css">
+      <Pane fx:id="pane" prefHeight="70.0" prefWidth="600.0" stylesheets="@../css/hd.css">
          <children>
             <MenuBar layoutY="2.0" prefHeight="25.0" styleClass="main_pane_width">
               <menus>
@@ -56,11 +56,12 @@
                     <tabs>
                       <Tab text="文件">
                         <content>
-                          <AnchorPane fx:id="filePane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
+                          <AnchorPane fx:id="filePane" minHeight="0.0" minWidth="0.0" onMousePressed="#panePress" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
                                  <children>
-                                    <FlowPane layoutX="274.0" layoutY="7.0" onMousePressed="#panePress" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                    <FlowPane fx:id="fileFlowPane" layoutX="274.0" layoutY="7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                                        <children>
-                                          <Button fx:id="parentCat" mnemonicParsing="false" onAction="#onButtonClick" />
+                                          <Button fx:id="parentCat" mnemonicParsing="false" onAction="#onButtonClick" onMouseClicked="#onButtonClickTwice" />
+                                          <Label fx:id="fileLabel" prefHeight="29.0" prefWidth="32.0" text="label" />
                                        </children>
                                     </FlowPane>
                                  </children></AnchorPane>

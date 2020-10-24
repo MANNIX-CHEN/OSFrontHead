@@ -3,8 +3,8 @@ package sample;
 import javafx.beans.property.SimpleStringProperty;
 
 public final class DataOfTable {
-    /*璇ョ被鐢ㄦ潵鍔犺浇琛ㄦ牸涓殑鏁版嵁*/
-    /*鍙傝�冪綉鍧�http://www.zzvips.com/article/21976.html*/
+    /*该类用来加载表格中的数据*/
+    /*参考网址http://www.zzvips.com/article/21976.html*/
     private final SimpleStringProperty fileName = new SimpleStringProperty();
     private final SimpleStringProperty filePath = new SimpleStringProperty();
     private final SimpleStringProperty firstBlock = new SimpleStringProperty();

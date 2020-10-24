@@ -2,10 +2,10 @@
     -fx-pref-height:360;
 }
 .cur_catalogue{
-    //-fx-background-color: green;
+    /*-fx-background-color: green;*/
 }
 .cur_disc_distribution{
-    //-fx-background-color: blue;
+    -fx-background-color: blue;
 }
 .leftbodyWidth{
     -fx-pref-width: 200;
@@ -29,7 +29,7 @@
 .parentCat{
     -fx-pref-width: 64;
     -fx-pref-height: 64;
-    //-fx-background-color: white;
+    -fx-background-color: white;
     -fx-background-image:url("../img/parent_directory.png");
 }
 .blockCol{

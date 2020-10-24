@@ -1,11 +1,11 @@
-package sample;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sample.Controller;
+
 import java.net.URL;
 
 public class Main extends Application {
@@ -14,15 +14,16 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
 
-        URL location = getClass().getResource("sample.fxml");
+        URL location = getClass().getResource("sample/sample.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(location);
-        fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());//²»ÄÜÊ¹ÓÃ¾²Ì¬¶ÁÈ¡·½·¨
+        fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());//ä¸èƒ½ä½¿ç”¨é™æ€è¯»å–æ–¹æ³•
         Parent root = fxmlLoader.load();
-        primaryStage.setTitle("ÎÄ¼ş¹ÜÀíÏµÍ³");
+        primaryStage.setTitle("æ–‡ä»¶ç®¡ç†ç³»ç»Ÿ");
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        Controller controller = fxmlLoader.getController();//»ñÈ¡ControllerÊµÀı¶ÔÏó
+
+        Controller controller = fxmlLoader.getController();//è·å–Controllerå®ä¾‹å¯¹è±¡
         controller.Init();
         primaryStage.show();
     }
