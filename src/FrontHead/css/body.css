@@ -1,11 +1,15 @@
 .body_height{
     -fx-pref-height:360;
+
+}
+.test_red_back{
+    -fx-background-color: red;
 }
 .cur_catalogue{
     /*-fx-background-color: green;*/
 }
 .cur_disc_distribution{
-    -fx-background-color: blue;
+    //-fx-background-color: blue;
 }
 .leftbodyWidth{
     -fx-pref-width: 200;
@@ -26,12 +30,33 @@
 .pieChart{
     -fx-border-color: black white;
 }
-.parentCat{
+.imgBtn{
     -fx-pref-width: 64;
     -fx-pref-height: 64;
-    -fx-background-color: white;
+    -fx-background-color: blue;
+}
+.catImg{
+    -fx-background-image:url("../img/folder.png");
+}
+.fileImg{
+    -fx-background-image:url("../img/writedFile.png");
+
+}
+.parentCatImg{
     -fx-background-image:url("../img/parent_directory.png");
 }
+
+.filePaneComPane{
+    -fx-padding: 12 32 12 32;
+}
+
+.filePaneComTitle{
+    -fx-padding: 80 0 0;
+
+
+}
+
+
 .blockCol{
     -fx-border-width: 0 1 0 1;
     -fx-border-color: white  #C0C0C0 white black;

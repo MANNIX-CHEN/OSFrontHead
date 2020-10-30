@@ -1,10 +1,10 @@
-package sample;
+package FrontHead.tableData;
 
 import javafx.beans.property.SimpleStringProperty;
 
 public final class DataOfTable {
-    /*¸ÃÀàÓÃÀ´¼ÓÔØ±í¸ñÖÐµÄÊý¾Ý*/
-    /*²Î¿¼ÍøÖ·http://www.zzvips.com/article/21976.html*/
+    /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½*/
+    /*ï¿½Î¿ï¿½ï¿½ï¿½Ö·http://www.zzvips.com/article/21976.html*/
     private final SimpleStringProperty fileName = new SimpleStringProperty();
     private final SimpleStringProperty filePath = new SimpleStringProperty();
     private final SimpleStringProperty firstBlock = new SimpleStringProperty();

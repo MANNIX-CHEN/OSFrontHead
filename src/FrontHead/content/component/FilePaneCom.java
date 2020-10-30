@@ -1,21 +1,16 @@
 package FrontHead.content.component;
 
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
+
 import javafx.geometry.Pos;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import sample.Controller;
 
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 
 public abstract class FilePaneCom extends StackPane {
@@ -23,16 +18,19 @@ public abstract class FilePaneCom extends StackPane {
     protected Label title;  //显示名称
     protected int clickNum;
     protected int callTimes;
+    protected Controller controller;
     protected boolean flag;
 
 
     public abstract void setImg();
-    public abstract void mouseClickedTiwce();
+    public abstract void mouseClickedTiwce() throws Exception;
 
 
-    public FilePaneCom(String name){
+
+    public FilePaneCom(String name,Controller controller){
         img = new Button();
         title = new Label();
+        setController(controller);
 
         //设置自己的样式
         getStyleClass().add("filePaneComPane");
@@ -52,11 +50,19 @@ public abstract class FilePaneCom extends StackPane {
         clickNum = 0;
         callTimes = 0;
         addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
+
+            getStyleClass().add("test_red_back");
+
+
             clickNum ++;
             Timer timer = new Timer();
             if (clickNum==2){
                 //System.out.println("click twice");
-                mouseClickedTiwce();
+                try {
+                    mouseClickedTiwce();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             timer.schedule(new TimerTask() {
@@ -72,6 +78,14 @@ public abstract class FilePaneCom extends StackPane {
         });
 
 
+
     }
 
+    public Controller getController() {
+        return controller;
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
+    }
 }

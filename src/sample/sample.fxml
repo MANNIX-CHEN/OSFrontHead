@@ -11,9 +11,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@../css/global.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<VBox id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@../FrontHead/css/global.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
-      <Pane fx:id="pane" prefHeight="70.0" prefWidth="600.0" stylesheets="@../css/hd.css">
+      <Pane fx:id="pane" prefHeight="70.0" prefWidth="600.0" stylesheets="@../FrontHead/css/hd.css">
          <children>
             <MenuBar layoutY="2.0" prefHeight="25.0" styleClass="main_pane_width">
               <menus>
@@ -41,11 +41,11 @@
             <TextField layoutX="107.0" layoutY="42.0" styleClass="index_text_filed" />
          </children>
       </Pane>
-      <SplitPane dividerPositions="0.2" prefHeight="354.0" prefWidth="1024.0" stylesheets="@../css/body.css">
+      <SplitPane dividerPositions="0.2" prefHeight="354.0" prefWidth="1024.0" stylesheets="@../FrontHead/css/body.css">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="100.0">
                <children>
-                  <TreeView fx:id="filesCatalogue" layoutX="6.0" layoutY="36.0" prefHeight="200.0" prefWidth="200.0" styleClass="leftbodyWidth" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <TreeView fx:id="filesCatView" layoutX="6.0" layoutY="36.0" prefHeight="200.0" prefWidth="200.0" styleClass="leftbodyWidth" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
 
                </children>
@@ -56,12 +56,11 @@
                     <tabs>
                       <Tab text="文件">
                         <content>
-                          <AnchorPane fx:id="filePane" minHeight="0.0" minWidth="0.0" onMousePressed="#panePress" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
+                          <AnchorPane minHeight="0.0" minWidth="0.0" onMousePressed="#panePress" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
                                  <children>
-                                    <FlowPane fx:id="fileFlowPane" layoutX="274.0" layoutY="7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                    <FlowPane fx:id="filePane" layoutX="274.0" layoutY="7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                                        <children>
                                           <Button fx:id="parentCat" mnemonicParsing="false" onAction="#onButtonClick" onMouseClicked="#onButtonClickTwice" />
-                                          <Label fx:id="fileLabel" prefHeight="29.0" prefWidth="32.0" text="label" />
                                        </children>
                                     </FlowPane>
                                  </children></AnchorPane>
@@ -128,7 +127,7 @@
             <String fx:value="body_background" />
          </styleClass>
       </SplitPane>
-      <TableView id="openFilesTable" fx:id="openFilesTable" prefHeight="200.0" prefWidth="200.0" styleClass="footer" stylesheets="@../css/footer.css">
+      <TableView id="openFilesTable" fx:id="openFilesTable" prefHeight="200.0" prefWidth="200.0" styleClass="footer" stylesheets="@../FrontHead/css/footer.css">
         <columns>
           <TableColumn prefWidth="75.0" styleClass="nameCol" text="文件名称" />
           <TableColumn prefWidth="75.0" styleClass="pathCol" text="文件路径" />

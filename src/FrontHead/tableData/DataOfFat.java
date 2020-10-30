@@ -1,4 +1,4 @@
-package sample;
+package FrontHead.tableData;
 
 import javafx.beans.property.SimpleStringProperty;
 
