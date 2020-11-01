@@ -1,0 +1,13 @@
+.footer{
+
+
+}
+.norCol{
+    -fx-pref-width: 125;
+}
+.nameCol{
+    -fx-pref-width: 149;
+}
+.pathCol{
+    -fx-pref-width: 500;
+}

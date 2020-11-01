@@ -1,0 +1,8 @@
+.test_back_red{
+    -fx-background-color: red;
+    -fx-border-color: black;
+}
+.textArea{
+    //-fx-background-color: red;
+    -fx-border-color: black;
+}

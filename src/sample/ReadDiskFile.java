@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.scene.control.TreeItem;
+
 import java.io.File;
 import java.lang.reflect.Field;
 
@@ -16,7 +18,6 @@ public class ReadDiskFile {
         openFilesInfo = new String[5][5];
         for (int i = 0 ; i < 5 ; i++ )
         openFilesInfo[i]= new String[]{"java.txt", "F:\\study\\JavaStudy\\OSKS\\src\\sample", "3"+i, "4", "只读"};
-
     }
     /*以下为与后台整合后的版本的成员以及构造方法*/
 

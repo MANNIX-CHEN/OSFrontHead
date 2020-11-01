@@ -14,16 +14,23 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.event.ActionEvent;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
+import java.awt.*;
 import java.util.Optional;
 import java.util.Vector;
 
 import javax.swing.text.html.ImageView;
+import de.jensd.fx.glyphs.fontawesome.*;
+import javafx.scene.text.Font;
 
 public class Controller {
 
@@ -50,6 +57,8 @@ public class Controller {
     private MenuItem newFile,newFolder,openFile,delFile,fileData,renameFile;
     @FXML
     private FlowPane filePane;
+    @FXML
+    private TextField curAbsPath;
     
     ReadDiskFile rd;//读取diskfile的文件信息
 
@@ -76,7 +85,7 @@ public class Controller {
         initContextMenu();//初始化右键下拉菜单
         setOnActionMenuItem();//下拉菜单功能实现
         initcatalogue();//初始化目录结构
-        updateFilePane();//刷新FilePane
+        //updateFilePane();//刷新 FilePane
         intDiskPane();//初始化磁盘分配情况页面
         initTable();//初始化表格
     }
@@ -145,6 +154,7 @@ public class Controller {
         /*更新filePane，先clear所有组件，然后根据curCat添加组件
         * */
         //System.out.println(curCat.getEntries()[0]);
+        curAbsPath.setText(curCat.getAbsPath());
         filePane.getChildren().clear();//清空所有组件
         Vector<CatEntry> curCatEntries  = curCat.getEntries();
 
@@ -207,6 +217,11 @@ public class Controller {
         rootCat = new Catalogue("C:");
         curCat = rootCat;
         filesCatView.setRoot(rootCat.getFxTreeItem());
+        filesCatView.getSelectionModel().selectedIndexProperty().addListener(
+                (observableValue, number, t1) -> {
+                    //System.out.println("info is " + observableValue +" @@@ " + number+" @@@ " +t1);
+                }
+        );
 
     }
 

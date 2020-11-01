@@ -1,0 +1,9 @@
+.topmeau{
+    -fx-translate-x: 0;
+    -fx-translate-y: 0;
+}
+.index_text_filed{
+    -fx-font-size: 12px;
+    -fx-pref-height: 12;
+    -fx-pref-width: 400;
+}

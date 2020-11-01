@@ -61,7 +61,6 @@ public class FileTextPane extends Application {
         root.getChildren().add(MB);
     }
 
-
     public void setFile(File file) {
         this.file = file;
     }
