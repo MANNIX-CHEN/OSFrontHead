@@ -6,20 +6,20 @@ import java.io.File;
 import java.lang.reflect.Field;
 
 public class ReadDiskFile {
-    /*Õâ¸öÀàÓÃÀ´¶ÁÈ¡diskfile£¬ÓÃÓÚ½«diskFileµÄÎÄ¼şäÖÈ¾µ½Ç°¶Ë*/
+    /*è¿™ä¸ªç±»ç”¨æ¥è¯»å–diskfileï¼Œç”¨äºå°†diskFileçš„æ–‡ä»¶æ¸²æŸ“åˆ°å‰ç«¯*/
 
 
 
 
-    /*ÒÔÏÂÎªÎ´ÓëºóÌ¨ÕûºÏµÄ°æ±¾µÄ³ÉÔ±ÒÔ¼°¹¹Ôì·½·¨*/
+    /*ä»¥ä¸‹ä¸ºæœªä¸åå°æ•´åˆçš„ç‰ˆæœ¬çš„æˆå‘˜ä»¥åŠæ„é€ æ–¹æ³•*/
     String openFilesInfo[][];
 
     ReadDiskFile(){
         openFilesInfo = new String[5][5];
         for (int i = 0 ; i < 5 ; i++ )
-        openFilesInfo[i]= new String[]{"java.txt", "F:\\study\\JavaStudy\\OSKS\\src\\sample", "3"+i, "4", "Ö»¶Á"};
+        openFilesInfo[i]= new String[]{"java.txt", "F:\\study\\JavaStudy\\OSKS\\src\\sample", "3"+i, "4", "åªè¯»"};
     }
-    /*ÒÔÏÂÎªÓëºóÌ¨ÕûºÏºóµÄ°æ±¾µÄ³ÉÔ±ÒÔ¼°¹¹Ôì·½·¨*/
+    /*ä»¥ä¸‹ä¸ºä¸åå°æ•´åˆåçš„ç‰ˆæœ¬çš„æˆå‘˜ä»¥åŠæ„é€ æ–¹æ³•*/
 
     ReadDiskFile(File diskFile){
 

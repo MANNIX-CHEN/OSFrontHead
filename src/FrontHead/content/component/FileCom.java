@@ -22,7 +22,8 @@ public class FileCom extends FilePaneCom {
 
     @Override
     public void mouseClickedTiwce() throws Exception {
-        new FileTextPane(file).init();
+        controller.openFile(file);
+        new FileTextPane(file , controller).init();
     }
 
     public void setFile(File file) {

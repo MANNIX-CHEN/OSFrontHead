@@ -21,8 +21,7 @@ public class CatCom extends FilePaneCom {
 
     @Override
     public void mouseClickedTiwce() {
-        controller.setCurCat(this.catalogue);
-        controller.updateFilePane();
+        controller.updateFilePane(this.catalogue);
     }
 
     public Catalogue getCatalogue() {

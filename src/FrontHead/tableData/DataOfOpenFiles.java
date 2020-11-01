@@ -1,25 +1,30 @@
 package FrontHead.tableData;
 
+import FrontHead.content.File;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
-public final class DataOfTable {
-    /*�����������ر���е�����*/
-    /*�ο���ַhttp://www.zzvips.com/article/21976.html*/
+public final class DataOfOpenFiles {
+    /*?????????????????????*/
+    /*??????http://www.zzvips.com/article/21976.html*/
     private final SimpleStringProperty fileName = new SimpleStringProperty();
     private final SimpleStringProperty filePath = new SimpleStringProperty();
-    private final SimpleStringProperty firstBlock = new SimpleStringProperty();
-    private final SimpleStringProperty fileLength = new SimpleStringProperty();
+    private final SimpleIntegerProperty firstBlock = new SimpleIntegerProperty();
+    private final SimpleIntegerProperty fileLength = new SimpleIntegerProperty();
     private final SimpleStringProperty operateType = new SimpleStringProperty();
-    private String uuid;
 
-    public DataOfTable(String[] curFileInfo){
-        setFileName(curFileInfo[0]);
-        setFilePath(curFileInfo[1]);
-        setFirstBlock(curFileInfo[2]);
-        setFileLength(curFileInfo[3]);
-        setOperateType(curFileInfo[4]);
+    private String uuid;
+    public DataOfOpenFiles(File file){
+        setFileName(file.getName());
+        setFilePath(file.getAbsPath());
+
+        setFirstBlock(file.getFirstBlock());
+        setFileLength(file.getFileLength());
+        setOperateType(file.getAttribute());
+
     }
     /*getter&setter*/
+
     public String getFileName() {
         return fileName.get();
     }
@@ -44,27 +49,27 @@ public final class DataOfTable {
         this.filePath.set(filePath);
     }
 
-    public String getFirstBlock() {
+    public int getFirstBlock() {
         return firstBlock.get();
     }
 
-    public SimpleStringProperty firstBlockProperty() {
+    public SimpleIntegerProperty firstBlockProperty() {
         return firstBlock;
     }
 
-    public void setFirstBlock(String firstBlock) {
+    public void setFirstBlock(int firstBlock) {
         this.firstBlock.set(firstBlock);
     }
 
-    public String getFileLength() {
+    public int getFileLength() {
         return fileLength.get();
     }
 
-    public SimpleStringProperty fileLengthProperty() {
+    public SimpleIntegerProperty fileLengthProperty() {
         return fileLength;
     }
 
-    public void setFileLength(String fileLength) {
+    public void setFileLength(int fileLength) {
         this.fileLength.set(fileLength);
     }
 

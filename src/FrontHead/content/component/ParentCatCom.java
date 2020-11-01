@@ -15,7 +15,8 @@ public class ParentCatCom extends FilePaneCom {
 
     @Override
     public void mouseClickedTiwce() {
-
+        controller.getCurCat().closeCat();
+        controller.updateFilePane(controller.getCurCat().getParent());
     }
 
 }

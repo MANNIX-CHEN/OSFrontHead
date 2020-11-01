@@ -6,8 +6,9 @@ import FrontHead.content.File;
 import FrontHead.content.component.FileCom;
 import FrontHead.content.component.FilePaneCom;
 import FrontHead.content.component.CatCom;
+import FrontHead.content.component.ParentCatCom;
 import FrontHead.tableData.DataOfFat;
-import FrontHead.tableData.DataOfTable;
+import FrontHead.tableData.DataOfOpenFiles;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
@@ -24,21 +25,19 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
-import java.awt.*;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Vector;
 
 import javax.swing.text.html.ImageView;
-import de.jensd.fx.glyphs.fontawesome.*;
-import javafx.scene.text.Font;
 
 public class Controller {
 
-    /*ÒÔÏÂ³ÉÔ±·Ö±ğ¶¨Òå¶ÔÓ¦µÄFXMLÖĞµÄ×é¼ş*/
+    /*ä»¥ä¸‹æˆå‘˜åˆ†åˆ«å®šä¹‰å¯¹åº”çš„FXMLä¸­çš„ç»„ä»¶*/
     @FXML
     private Button parentCat;
     @FXML
-    private TableView<DataOfTable> openFilesTable;
+    private TableView<DataOfOpenFiles> openFilesTable;
     @FXML
     private TreeView<String> filesCatView;
     @FXML
@@ -60,40 +59,53 @@ public class Controller {
     @FXML
     private TextField curAbsPath;
     
-    ReadDiskFile rd;//¶ÁÈ¡diskfileµÄÎÄ¼şĞÅÏ¢
+    ReadDiskFile rd;//è¯»å–diskfileçš„æ–‡ä»¶ä¿¡æ¯
 
 
-    /*ÒÔÏÂÎªäÖÈ¾³ÌĞòĞèÒªÊ¹ÓÃµ½µÄÏà¹Ø³ÉÔ±*/
+    /*ä»¥ä¸‹ä¸ºæ¸²æŸ“ç¨‹åºéœ€è¦ä½¿ç”¨åˆ°çš„ç›¸å…³æˆå‘˜*/
     private Catalogue rootCat ;
-    private Catalogue curCat ;//µ±Ç°Ä¿Â¼
+    private Catalogue curCat ;//å½“å‰ç›®å½•
     FilePaneCom[] curFPaneComs;
+    Vector<File> curOpenFiles;
+    int[] fat;
 
 
-    /*ÒÔÏÂÎªÒÑ¾­´ò¿ªÎÄ¼ş±í¸ñdata£¨ĞèÒªÓë¶ÔÓ¦µÄµÄtableÇø±ğ¿ª£©*/
-    private ObservableList<DataOfTable> openFilesData = FXCollections.observableArrayList();
+    /*ä»¥ä¸‹ä¸ºå·²ç»æ‰“å¼€æ–‡ä»¶è¡¨æ ¼dataï¼ˆéœ€è¦ä¸å¯¹åº”çš„çš„tableåŒºåˆ«å¼€ï¼‰*/
+    private ObservableList<DataOfOpenFiles> openFilesData = FXCollections.observableArrayList();
     private ObservableList<DataOfFat> fatData = FXCollections.observableArrayList();
 
     //TreeItem<String> root = new TreeItem<>("C:");
 
 
+    /*getter&setter*/
+    public Catalogue getCurCat() {
+        return curCat;
+    }
+
     public void setCurCat(Catalogue curCat) {
         this.curCat = curCat;
     }
 
+    public Vector<File> getCurOpenFiles() {
+        return curOpenFiles;
+    }
+
     public void Init(){
         rd = new ReadDiskFile();
-        initContextMenu();//³õÊ¼»¯ÓÒ¼üÏÂÀ­²Ëµ¥
-        setOnActionMenuItem();//ÏÂÀ­²Ëµ¥¹¦ÄÜÊµÏÖ
-        initcatalogue();//³õÊ¼»¯Ä¿Â¼½á¹¹
-        //updateFilePane();//Ë¢ĞÂ FilePane
-        intDiskPane();//³õÊ¼»¯´ÅÅÌ·ÖÅäÇé¿öÒ³Ãæ
-        initTable();//³õÊ¼»¯±í¸ñ
+
+        initContextMenu();//åˆå§‹åŒ–å³é”®ä¸‹æ‹‰èœå•
+        setOnActionMenuItem();//ä¸‹æ‹‰èœå•åŠŸèƒ½å®ç°
+        initcatalogue();//åˆå§‹åŒ–ç›®å½•ç»“æ„
+        initOpenFilesTable();//åˆå§‹åŒ–è¡¨æ ¼,åˆå§‹åŒ–curOpenFiles
+        updateFilePane();//åˆå§‹åˆ·æ–° FilePane
+        intDiskPane();//åˆå§‹åŒ–ç£ç›˜åˆ†é…æƒ…å†µé¡µé¢
+
     }
     
     public void initContextMenu() {
     	fileContextMenu=new ContextMenu();
-    	newFile = new MenuItem("ĞÂ½¨ÎÄ¼ş");
-    	newFolder = new MenuItem("ĞÂ½¨ÎÄ¼ş¼Ğ");
+    	newFile = new MenuItem("æ–°å»ºæ–‡ä»¶");
+    	newFolder = new MenuItem("æ–°å»ºæ–‡ä»¶å¤¹");
     	fileContextMenu.getItems().addAll(newFile,newFolder);
     	filePane.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 
@@ -105,12 +117,12 @@ public class Controller {
 			}
 		});
 
-    	/*ÎÄ¼şÓÒ¼ü²Ëµ¥*/
+    	/*æ–‡ä»¶å³é”®èœå•*/
     	fileContextMenu2=new ContextMenu();
-    	openFile = new MenuItem("´ò¿ª");
-    	delFile = new MenuItem("É¾³ı");
-    	fileData = new MenuItem("ÊôĞÔ");
-    	renameFile = new MenuItem("ÖØÃüÃû");
+    	openFile = new MenuItem("æ‰“å¼€");
+    	delFile = new MenuItem("åˆ é™¤");
+    	fileData = new MenuItem("å±æ€§");
+    	renameFile = new MenuItem("é‡å‘½å");
     	fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
     	parentCat.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 			if (event.getButton() == MouseButton.SECONDARY && !fileContextMenu.isShowing()) {
@@ -121,14 +133,14 @@ public class Controller {
 		});
     }
     
-    /*ÏÂÀ­²Ëµ¥¹¦ÄÜÊµÏÖ*/
+    /*ä¸‹æ‹‰èœå•åŠŸèƒ½å®ç°*/
     public void setOnActionMenuItem() {
     	newFile.setOnAction(ActionEvent -> {
-			//System.out.println("ĞÂ½¨ÎÄ¼ş");
+			//System.out.println("æ–°å»ºæ–‡ä»¶");
     		TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("ĞÂ½¨ÎÄ¼ş");
-    		dialog.setHeaderText("ĞÂ½¨ÎÄ¼ş");
-    		dialog.setContentText("ÇëÊäÈëÎÄ¼şÃû:");
+    		dialog.setTitle("æ–°å»ºæ–‡ä»¶");
+    		dialog.setHeaderText("æ–°å»ºæ–‡ä»¶");
+    		dialog.setContentText("è¯·è¾“å…¥æ–‡ä»¶å:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
     		    curCat.addFileEntry(result.get());
@@ -137,32 +149,37 @@ public class Controller {
 		});
     	
     	newFolder.setOnAction(ActionEvent -> {
-			//System.out.println("ĞÂ½¨ÎÄ¼ş¼Ğ");
+			//System.out.println("æ–°å»ºæ–‡ä»¶å¤¹");
     		TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("ĞÂ½¨ÎÄ¼ş¼Ğ");
-    		dialog.setHeaderText("ĞÂ½¨ÎÄ¼ş¼Ğ");
-    		dialog.setContentText("ÇëÊäÈëÎÄ¼ş¼ĞÃû:");
+    		dialog.setTitle("æ–°å»ºæ–‡ä»¶å¤¹");
+    		dialog.setHeaderText("æ–°å»ºæ–‡ä»¶å¤¹");
+    		dialog.setContentText("è¯·è¾“å…¥æ–‡ä»¶å¤¹å:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
     		    curCat.addCatEntry(result.get());
-    		    updateFilePane();//Ìí¼ÓÄ¿Â¼ºó¸üĞÂ½çÃæ
+    		    updateFilePane();//æ·»åŠ ç›®å½•åæ›´æ–°ç•Œé¢
     		}
 		});
     }
 
-    public void updateFilePane() {
-        /*¸üĞÂfilePane£¬ÏÈclearËùÓĞ×é¼ş£¬È»ºó¸ù¾İcurCatÌí¼Ó×é¼ş
-        * */
-        //System.out.println(curCat.getEntries()[0]);
-        curAbsPath.setText(curCat.getAbsPath());
-        filePane.getChildren().clear();//Çå¿ÕËùÓĞ×é¼ş
-        Vector<CatEntry> curCatEntries  = curCat.getEntries();
 
-        /*Á½¸öforÑ­»·Ìí¼Ó×é¼ş ÏÈÎÄ¼ş¼Ğ£¬È»ºóÔÙÎÄ¼ş*/
+    public void updateFilePane() {
+        /*æ›´æ–°filePaneï¼Œå…ˆclearæ‰€æœ‰ç»„ä»¶ï¼Œç„¶åæ ¹æ®curCatæ·»åŠ ç»„ä»¶
+        * */
+        curAbsPath.setText(curCat.getAbsPath());
+        filePane.getChildren().clear();//æ¸…ç©ºæ‰€æœ‰ç»„ä»¶
+
+        if ((curCat != rootCat)) {
+            filePane.getChildren().add(new ParentCatCom("...", this));
+        }
+
+
+        Vector<CatEntry> curCatEntries  = curCat.getEntries();
+        /*ä¸¤ä¸ªforå¾ªç¯æ·»åŠ ç»„ä»¶ å…ˆæ–‡ä»¶å¤¹ï¼Œç„¶åå†æ–‡ä»¶*/
         for (CatEntry cat :
              curCatEntries) {
             if (cat.toString().matches("(.*)Catalogue(.*)")){
-                //ÕıÔò±í´ïÊ½Æ¥Åä catalogue
+                //æ­£åˆ™è¡¨è¾¾å¼åŒ¹é… catalogue
                 CatCom addCom = new CatCom(cat.getName(), this, (Catalogue) cat);
                 filePane.getChildren().add(addCom);
             }
@@ -170,47 +187,90 @@ public class Controller {
         for (CatEntry file :
                 curCatEntries) {
             if (file.toString().matches("(.*)File(.*)")){
-                //ÕıÔò±í´ïÊ½Æ¥Åä File
+                //æ­£åˆ™è¡¨è¾¾å¼åŒ¹é… File
                 FileCom addCom = new FileCom(file.getName(), (File) file,this);
                 filePane.getChildren().add(addCom);
             }
         }
+        updateOpenFilesTable();
     }
 
+
+
+    public void updateFilePane(Catalogue nextCurCat){
+        setCurCat(nextCurCat);
+        curCat.updateTreeView();
+        updateFilePane();
+    }
+    public void closeFile(File file){
+        getCurOpenFiles().remove(file);
+        updateOpenFilesTable();
+    }
+    public void openFile(File file){
+        getCurOpenFiles().add(file);
+        updateOpenFilesTable();
+    }
+
+    private void updateOpenFilesTable() {
+        openFilesData.clear();
+        for (File addFile:
+             curOpenFiles) {
+            openFilesData.add(new DataOfOpenFiles(addFile));
+        }
+        openFilesTable.setItems(openFilesData);
+    }
     private void intDiskPane() {
         double testwidth;
-        /*ÒÔÏÂÄÚÈİÎª³õÊ¼»¯fat±í*/
+        fat = new int[128];
+        fat[0] = -1; fat[1] = -1;
+
+        /*ä»¥ä¸‹å†…å®¹åˆå§‹åŒ–fatè¡¨*/
         ObservableList<TableColumn<DataOfFat, ?>> observableList = fatTable.getColumns();
 
         for (int i = 0 ; i < 4 ; i++){
             TableColumn curBlockCol = observableList.get(2*i);
             TableColumn curValCol = observableList.get(2*i+1);
 
-            /*¿éÁĞ*/
-            curBlockCol.setText("¿é");
+            /*å—åˆ—*/
+            curBlockCol.setText("å—");
             curBlockCol.setCellValueFactory(new PropertyValueFactory("block"+i));
-            curBlockCol.getStyleClass().add("blockCol");
+            curBlockCol.getStyleClass().add("blockCol");//åŠ ä¸Šå·¦è¾¹ç•Œï¼ŒåŠ å¼ºè§‚æ„Ÿ
 
-            /*ÖµÁĞ*/
-            curValCol.setText("Öµ");
+            /*å€¼åˆ—*/
+            curValCol.setText("å€¼");
             curValCol.setCellValueFactory(new PropertyValueFactory("val"+i));
-        }//³õÊ¼»¯fatTableµÄĞèÒªÓÃµ½µÄ¶«Î÷
+        }//åˆå§‹åŒ–fatTableçš„éœ€è¦ç”¨åˆ°çš„ä¸œè¥¿
 
-
-        for (int i = 0 ; i < 32 ; i++ ){
-            fatData.add(new DataOfFat(
-                    new int[]{4*i,4*i+1,4*i+2,4*i+3},
-                    new int[]{-1,-1,-1,-1}));
-        }
-        fatTable.setItems(fatData);
-
-
-
-        /*ÒÔÏÂÄÚÈİÎª³õÊ¼»¯±ıÍ¼*/
-        PieChart.Data used = new PieChart.Data("used",2);
+        /*ä»¥ä¸‹å†…å®¹ä¸ºåˆå§‹åŒ–é¥¼å›¾*/
+        PieChart.Data used = new PieChart.Data("used",12);
         PieChart.Data unused = new PieChart.Data("unused",128-used.getPieValue());
         pieChart.getData().add(used);
         pieChart.getData().add(unused);
+
+        updateFat();
+    }
+    public void updateFat(){
+
+        /*ä»¥ä¸‹ä¸ºåˆ·æ–°fatè¡¨*/
+        for (int i = 0 ; i < 32 ; i++ ){
+            fatData.add(new DataOfFat(
+                    new int[]{4*i,4*i+1,4*i+2,4*i+3},
+                    new int[]{fat[4*i] , fat[4*i+1],
+                            fat[4*i+2] , fat[4*i+3] }));
+        }
+        int numOfused = 0;
+        for (int curVal :
+             fat) {
+            if (curVal == -1)
+                numOfused++;
+        }
+        fatTable.setItems(fatData);
+
+        /*ä»¥ä¸‹å†…å®¹ä¸ºåˆ·æ–°pieå›¾*/
+        PieChart.Data used = new PieChart.Data("used",numOfused);
+        pieChart.getData().set(0,used);
+        pieChart.getData().set(1,new PieChart.Data("unused",128-used.getPieValue()));
+
     }
 
     private void initcatalogue() {
@@ -225,28 +285,30 @@ public class Controller {
 
     }
 
-    private void initTable() {
+    private void initOpenFilesTable() {
+        curOpenFiles = new Vector<File>(5);
 
-        ObservableList<TableColumn<DataOfTable, ?>> observableList = openFilesTable.getColumns();
+        ObservableList<TableColumn<DataOfOpenFiles, ?>> observableList = openFilesTable.getColumns();
         observableList.get(0).setCellValueFactory(new PropertyValueFactory("fileName"));
         observableList.get(1).setCellValueFactory(new PropertyValueFactory("filePath"));
         observableList.get(2).setCellValueFactory(new PropertyValueFactory("firstBlock"));
         observableList.get(3).setCellValueFactory(new PropertyValueFactory("fileLength"));
         observableList.get(4).setCellValueFactory(new PropertyValueFactory("operateType"));
-        //Éè¶¨ĞèÒªÌí¼ÓµÄĞÅÏ¢ÊÇÊ²Ã´
+        //è®¾å®šéœ€è¦æ·»åŠ çš„ä¿¡æ¯æ˜¯ä»€ä¹ˆ
 
-        for (String[] curFileInfo:
-             rd.openFilesInfo) {
-            openFilesData.add(new DataOfTable(curFileInfo));
-        }
-        //½«ĞèÒª·ÅÔÚ±í¸ñµÄĞÅÏ¢·ÅÔÚdataÀïÍ·
 
-        openFilesTable.setItems(openFilesData);
-        //setItem½«dataµÄÊı¾İ·Åµ½±í¸ñÖĞ
+//        for (String[] curFileInfo:
+//             rd.openFilesInfo) {
+//            openFilesData.add(new DataOfOpenFiles(curFileInfo));
+//        }
+//        //å°†éœ€è¦æ”¾åœ¨è¡¨æ ¼çš„ä¿¡æ¯æ”¾åœ¨dataé‡Œå¤´
+//
+//        openFilesTable.setItems(openFilesData);
+//        //setItemå°†dataçš„æ•°æ®æ”¾åˆ°è¡¨æ ¼ä¸­
 
     }
 
-    @FXML//ÊÂ¼ş¼àÌıÆ÷
+    @FXML//äº‹ä»¶ç›‘å¬å™¨
     public void onButtonClick(ActionEvent event){
         System.out.println(77777);
     }
@@ -258,7 +320,7 @@ public class Controller {
 /*    @FXML
     public void paneSecondary(MouseEvent mouseEvent) {
         if(mouseEvent.getButton()==MouseButton.SECONDARY) {
-        	System.out.println("ÓÒ¼üµã»÷¿Õ°×µØ·½");
+        	System.out.println("å³é”®ç‚¹å‡»ç©ºç™½åœ°æ–¹");
         	updateFilePane();
         }
     }*/
@@ -266,14 +328,14 @@ public class Controller {
     @FXML
     public void onButtonClickTwice(MouseEvent event) {
     	if(event.getClickCount() == 2) {
-    		System.out.println("Ë«»÷½øÈëÎÄ¼ş£¨¼Ğ£©");
+    		System.out.println("åŒå‡»è¿›å…¥æ–‡ä»¶ï¼ˆå¤¹ï¼‰");
     	}
     }
     
     @FXML 
     public void onButtonSecondary(MouseEvent event) {
     	if(event.getButton()==MouseButton.SECONDARY) {
-    		System.out.println("ÓÒ¼üµã»÷ÎÄ¼ş£¨¼Ğ£©");
+    		System.out.println("å³é”®ç‚¹å‡»æ–‡ä»¶ï¼ˆå¤¹ï¼‰");
     	}
     }
     

@@ -1,16 +1,17 @@
 package FrontHead.content;
 
-import javafx.scene.control.TreeItem;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-import javax.swing.event.ChangeEvent;
 import java.util.Vector;
 
 public class Catalogue implements CatEntry{
     //String entries[] ;
     //private CatEntry entries[];
     private Vector<CatEntry> entries;
+    private Vector<TreeItem> catItems;
+    private Vector<TreeItem> fileItems;
     private String absPath;
     private Catalogue parent;
     private String name;
@@ -24,36 +25,44 @@ public class Catalogue implements CatEntry{
     public Catalogue(String rootCatName){
         /*构造root目录,不需要传入父目录*/
         setParent(null);
-        absPath = getName();
         initCat(rootCatName);
+        absPath = getName();
     }
 
     public Catalogue (String catName , Catalogue parentCat){
         setParent(parentCat);
-        absPath = parentCat.getAbsPath() + "\\" + catName;
+        absPath = (parentCat == null)?("C:\\"+catName):
+                (parentCat.getAbsPath() + "\\" + catName);
         initCat(catName);
     }
 
     private void initCat(String catName){
         entries = new Vector<>(8);
+        fileItems = new Vector<>(8);
+        catItems = new Vector<>(8);
         setName(catName);
         this.setFxTreeItem(new TreeItem<>(catName));
         this.getFxTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG));
+
     }
     public int addFileEntry(String fileName){
         /*描述：添加文件目录项
         * 返回 -1 表示添加失败
         * 其余值表示存到目录的第几项
         * */
-        File childrenFile = new File(fileName,this);
+        File childrenFile = new File(fileName,this , this.absPath);
         if (getEntries().size()!=8){
             //如果仍然有空位
             entries.add(childrenFile);
-            this.getFxTreeItem().getChildren().add(childrenFile.getFxTreeItem());
+            fileItems.add(childrenFile.getFxTreeItem());
+            updateTreeView();
+
             return getEntries().size()-1;
         }
         return CAT_IS_FULL;
     }
+
+
 
     public int addCatEntry (String catName){
         /*描述：添加子目录目录项
@@ -67,19 +76,48 @@ public class Catalogue implements CatEntry{
         if (getEntries().size()!=8){
             //如果仍然有空位
             entries.add(childrenCat);
-
-            this.getFxTreeItem().getChildren().add(childrenCat.getFxTreeItem());
-            System.out.println("children is "+getFxTreeItem().getChildren());
+            catItems.add(childrenCat.getFxTreeItem());
+            updateTreeView();
             return getEntries().size()-1;
         }
-
-
         return CAT_IS_FULL;
         //在程序层面添加目录项
 
 
     }
+    public void updateTreeView() {
+        this.getFxTreeItem().getChildren().clear();
+        for (TreeItem addItem:
+             catItems) {
+            this.getFxTreeItem().getChildren().add(addItem);
+        }
+        for (TreeItem addItem:
+             fileItems) {
+            this.getFxTreeItem().getChildren().add(addItem);
+        }
+        this.getFxTreeItem().setExpanded(true);
+        if(getFxTreeItem().getChildren().isEmpty()){
+            closeCat();
+        }else {
+            openCat();
+        }
 
+        this.getFxTreeItem().addEventHandler(TreeItem.branchExpandedEvent(),
+            event -> event.getTreeItem().setGraphic(new ImageView(OPEN_FLODER_IMG)));//关闭Item
+
+        this.getFxTreeItem().addEventHandler(TreeItem.branchCollapsedEvent(),
+            event -> event.getTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG))
+        );//打开Item
+    }
+
+    public void openCat(){
+        getFxTreeItem().setExpanded(true);
+        getFxTreeItem().setGraphic(new ImageView(OPEN_FLODER_IMG));
+    }
+    public void closeCat(){
+        getFxTreeItem().setExpanded(false);
+        getFxTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG));
+    }
 
     public Catalogue getParent() {
         return parent;

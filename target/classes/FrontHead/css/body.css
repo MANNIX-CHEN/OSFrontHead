@@ -71,3 +71,14 @@
 .cat_tree_item{
     -fx-background-color: red;
 }
+
+
+/*下面两个类重新设置了TreeView的展开和收置的CSS，详情百度SVG路径字符串*/
+.tree-cell .tree-disclosure-node .arrow {
+    -fx-shape: "M 0 -1 L 3 -1 L 3 -4 L 5 -4 L 5 -1 L 8 -1 L 8 1 L 5 1 L 5 4 L 3 4 L 3 1 L 0 1 z";
+}
+.tree-cell:expanded .tree-disclosure-node .arrow {
+    -fx-rotate: 0;
+    -fx-scale-shape: false;
+    -fx-shape: "M 0 -1 L 7 -1 L 7 1 L 0 1 z";
+}
