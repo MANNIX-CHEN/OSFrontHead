@@ -1,22 +1,21 @@
 package FrontHead.content;
 
+import BackGround.Server;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import sample.Controller;
 
+import java.io.IOException;
 import java.util.Optional;
 
 
 public class FileTextPane extends Application {
 
-    File file;
+    VirtualFile file;
     FlowPane root = new FlowPane();
     Controller controller;
     TextArea TA;
@@ -24,9 +23,11 @@ public class FileTextPane extends Application {
     MenuBar MB;
     final int MENU_HEIGHT = 25;//这个是通过监听器测量得到。不是长久之计勉强用用
     int test = 0;
-    public FileTextPane(File file , Controller controller){
+    Server server;
+    public FileTextPane(VirtualFile file , Controller controller ,Server server){
         super();
         setController(controller);
+        setServer(controller.getServer());
         setFile(file);
     }
 
@@ -36,10 +37,16 @@ public class FileTextPane extends Application {
         fileStage.setScene(scene);
         fileStage.show();
         fileStage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST,
-                windowEvent -> closeTextPane(windowEvent));
+                windowEvent -> {
+                    try {
+                        closeTextPane(windowEvent);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
-    private void closeTextPane(WindowEvent windowEvent) {
+    private void closeTextPane(WindowEvent windowEvent) throws IOException {
 
         if ((latesText==null)||
                 !(latesText.equals(TA.getText()))){//距离latestText有改动
@@ -72,9 +79,10 @@ public class FileTextPane extends Application {
         controller.closeFile(file);
     }
 
-    private void saveFile() {
+    private void saveFile() throws IOException {
         latesText = TA.getText();
-        System.out.println("saveFile " + latesText);
+        file.setLatestText(latesText);
+        System.out.println("saveFile " + server.saveFile(file));
     }
 
 
@@ -103,7 +111,11 @@ public class FileTextPane extends Application {
         MenuItem saveItem = new MenuItem("save");
         fileMeau.getItems().add(saveItem);
         saveItem.setOnAction(ActionEvent -> {
-            saveFile();
+            try {
+                saveFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
 
         MB.getMenus().addAll(fileMeau);
@@ -115,7 +127,11 @@ public class FileTextPane extends Application {
         this.controller = controller;
     }
 
-    public void setFile(File file) {
+    public void setFile(VirtualFile file) {
         this.file = file;
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
     }
 }

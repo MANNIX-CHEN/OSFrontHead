@@ -1,6 +1,6 @@
 package FrontHead.tableData;
 
-import FrontHead.content.File;
+import FrontHead.content.VirtualFile;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -14,7 +14,7 @@ public final class DataOfOpenFiles {
     private final SimpleStringProperty operateType = new SimpleStringProperty();
 
     private String uuid;
-    public DataOfOpenFiles(File file){
+    public DataOfOpenFiles(VirtualFile file){
         setFileName(file.getName());
         setFilePath(file.getAbsPath());
 

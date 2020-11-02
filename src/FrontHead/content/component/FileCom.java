@@ -1,16 +1,12 @@
 package FrontHead.content.component;
 
-import FrontHead.content.File;
+import FrontHead.content.VirtualFile;
 import FrontHead.content.FileTextPane;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.FlowPane;
-import javafx.stage.Stage;
 import sample.Controller;
 
 public class FileCom extends FilePaneCom {
-    File file ;
-    public FileCom(String name , File file ,Controller controller) {
+    VirtualFile file ;
+    public FileCom(String name , VirtualFile file , Controller controller) {
         super(name , controller);
         setFile(file);
     }
@@ -23,10 +19,10 @@ public class FileCom extends FilePaneCom {
     @Override
     public void mouseClickedTiwce() throws Exception {
         controller.openFile(file);
-        new FileTextPane(file , controller).init();
+        new FileTextPane(file , controller , controller.getServer()).init();
     }
 
-    public void setFile(File file) {
+    public void setFile(VirtualFile file) {
         this.file = file;
     }
 }

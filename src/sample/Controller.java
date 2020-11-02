@@ -1,8 +1,9 @@
 package sample;
 
+import BackGround.Server;
 import FrontHead.content.CatEntry;
 import FrontHead.content.Catalogue;
-import FrontHead.content.File;
+import FrontHead.content.VirtualFile;
 import FrontHead.content.component.FileCom;
 import FrontHead.content.component.FilePaneCom;
 import FrontHead.content.component.CatCom;
@@ -25,7 +26,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Vector;
 
@@ -60,13 +61,14 @@ public class Controller {
     private TextField curAbsPath;
     
     ReadDiskFile rd;//读取diskfile的文件信息
+    Server server;
 
 
     /*以下为渲染程序需要使用到的相关成员*/
     private Catalogue rootCat ;
     private Catalogue curCat ;//当前目录
     FilePaneCom[] curFPaneComs;
-    Vector<File> curOpenFiles;
+    Vector<VirtualFile> curOpenFiles;
     int[] fat;
 
 
@@ -78,6 +80,11 @@ public class Controller {
 
 
     /*getter&setter*/
+
+    public Server getServer() {
+        return server;
+    }
+
     public Catalogue getCurCat() {
         return curCat;
     }
@@ -86,12 +93,12 @@ public class Controller {
         this.curCat = curCat;
     }
 
-    public Vector<File> getCurOpenFiles() {
+    public Vector<VirtualFile> getCurOpenFiles() {
         return curOpenFiles;
     }
 
-    public void Init(){
-        rd = new ReadDiskFile();
+    public void Init() throws IOException {
+        server = new Server(this);
 
         initContextMenu();//初始化右键下拉菜单
         setOnActionMenuItem();//下拉菜单功能实现
@@ -143,8 +150,12 @@ public class Controller {
     		dialog.setContentText("请输入文件名:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
-    		    curCat.addFileEntry(result.get());
-    		    updateFilePane();
+                try {
+                    curCat.addFileEntry(result.get());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                updateFilePane();
     		}
 		});
     	
@@ -188,7 +199,7 @@ public class Controller {
                 curCatEntries) {
             if (file.toString().matches("(.*)File(.*)")){
                 //正则表达式匹配 File
-                FileCom addCom = new FileCom(file.getName(), (File) file,this);
+                FileCom addCom = new FileCom(file.getName(), (VirtualFile) file,this);
                 filePane.getChildren().add(addCom);
             }
         }
@@ -202,18 +213,18 @@ public class Controller {
         curCat.updateTreeView();
         updateFilePane();
     }
-    public void closeFile(File file){
+    public void closeFile(VirtualFile file){
         getCurOpenFiles().remove(file);
         updateOpenFilesTable();
     }
-    public void openFile(File file){
+    public void openFile(VirtualFile file){
         getCurOpenFiles().add(file);
         updateOpenFilesTable();
     }
 
     private void updateOpenFilesTable() {
         openFilesData.clear();
-        for (File addFile:
+        for (VirtualFile addFile:
              curOpenFiles) {
             openFilesData.add(new DataOfOpenFiles(addFile));
         }
@@ -274,7 +285,7 @@ public class Controller {
     }
 
     private void initcatalogue() {
-        rootCat = new Catalogue("C:");
+        rootCat = new Catalogue("C:" , getServer());
         curCat = rootCat;
         filesCatView.setRoot(rootCat.getFxTreeItem());
         filesCatView.getSelectionModel().selectedIndexProperty().addListener(
@@ -286,7 +297,7 @@ public class Controller {
     }
 
     private void initOpenFilesTable() {
-        curOpenFiles = new Vector<File>(5);
+        curOpenFiles = new Vector<VirtualFile>(5);
 
         ObservableList<TableColumn<DataOfOpenFiles, ?>> observableList = openFilesTable.getColumns();
         observableList.get(0).setCellValueFactory(new PropertyValueFactory("fileName"));

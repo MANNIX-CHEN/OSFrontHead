@@ -1,6 +1,7 @@
 package FrontHead.content.component;
 
 
+import BackGround.Server;
 import javafx.geometry.Pos;
 
 import javafx.scene.control.Button;
@@ -26,7 +27,7 @@ public abstract class FilePaneCom extends StackPane {
     public abstract void mouseClickedTiwce() throws Exception;
 
 
-
+    Server server;
     public FilePaneCom(String name,Controller controller){
         img = new Button();
         title = new Label();
@@ -79,6 +80,10 @@ public abstract class FilePaneCom extends StackPane {
 
 
 
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
     }
 
     public Controller getController() {

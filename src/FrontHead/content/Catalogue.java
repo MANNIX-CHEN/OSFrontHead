@@ -1,9 +1,11 @@
 package FrontHead.content;
 
+import BackGround.Server;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import java.io.IOException;
 import java.util.Vector;
 
 public class Catalogue implements CatEntry{
@@ -13,6 +15,7 @@ public class Catalogue implements CatEntry{
     private Vector<TreeItem> catItems;
     private Vector<TreeItem> fileItems;
     private String absPath;
+    private Server server;
     private Catalogue parent;
     private String name;
     private final Image CLOSE_FLODER_IMG = new Image("FrontHead/UI/close_floder_treeView.png");
@@ -22,11 +25,12 @@ public class Catalogue implements CatEntry{
     private static final int CAT_IS_FULL = -1;
 
     /*以下为未与后台整合的部分*/
-    public Catalogue(String rootCatName){
+    public Catalogue(String rootCatName , Server server){
         /*构造root目录,不需要传入父目录*/
         setParent(null);
         initCat(rootCatName);
         absPath = getName();
+        setServer(server);
     }
 
     public Catalogue (String catName , Catalogue parentCat){
@@ -45,12 +49,12 @@ public class Catalogue implements CatEntry{
         this.getFxTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG));
 
     }
-    public int addFileEntry(String fileName){
+    public int addFileEntry(String fileName) throws IOException {
         /*描述：添加文件目录项
         * 返回 -1 表示添加失败
         * 其余值表示存到目录的第几项
         * */
-        File childrenFile = new File(fileName,this , this.absPath);
+        VirtualFile childrenFile = new VirtualFile(fileName,this , this.absPath , this.server );
         if (getEntries().size()!=8){
             //如果仍然有空位
             entries.add(childrenFile);
@@ -150,5 +154,9 @@ public class Catalogue implements CatEntry{
 
     public String getAbsPath() {
         return absPath;
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
     }
 }
