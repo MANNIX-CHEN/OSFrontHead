@@ -26,17 +26,32 @@ public class Catalogue implements CatEntry{
     private static final int CAT_IS_FULL = -1;
 
 
-    public Catalogue(String rootCatName , Server server){
+    public Catalogue(String rootCatName , Server server) throws IOException {
         /*构造root目录,不需要传入父目录*/
         setParent(null);
         initCat(rootCatName);
         absPath = getName();
         setServer(server);
-        setFirstBlock(server.findNextFreeBlock());
+        setFirstBlock(2);
+        server.setReading(true);
+        server.readCat(this);
+        server.setReading(false);
+    }
+
+    public Catalogue (String catName , Catalogue parentCat , int firstBlock){
+        //server.readCat调用
+        setParent(parentCat);
+        setServer(getParent().server);//不是根目录的话，递归寻找server
+        setFirstBlock(firstBlock);
+        absPath = (parentCat == null)?("C:\\"+catName):
+                (parentCat.getAbsPath() + "\\" + catName);
+        initCat(catName);
     }
 
     public Catalogue (String catName , Catalogue parentCat){
         setParent(parentCat);
+        setServer(getParent().server);//不是根目录的话，递归寻找server
+        setFirstBlock(server.findNextFreeBlock());
         absPath = (parentCat == null)?("C:\\"+catName):
                 (parentCat.getAbsPath() + "\\" + catName);
         initCat(catName);
@@ -51,12 +66,11 @@ public class Catalogue implements CatEntry{
         this.getFxTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG));
 
     }
-    public int addFileEntry(String fileName) throws IOException {
+    public int addFileEntry(VirtualFile childrenFile) throws IOException {
         /*描述：添加文件目录项
         * 返回 -1 表示添加失败
         * 其余值表示存到目录的第几项
         * */
-        VirtualFile childrenFile = new VirtualFile(fileName,this , this.absPath , this.server );
         if (getEntries().size()!=8){
             //如果仍然有空位
             entries.add(childrenFile);
@@ -69,21 +83,28 @@ public class Catalogue implements CatEntry{
     }
 
 
-
-    public int addCatEntry (String catName){
+    public int addCatEntry (Catalogue childrenCat) throws IOException {
         /*描述：添加子目录目录项
-        * 返回 -1 表示添加失败
-        * 其余值表示存到目录的第几项
-        * */
-        Catalogue childrenCat = new Catalogue(catName , this);
+         * 返回 -1 表示添加失败
+         * 其余值表示存到目录的第几项
+         * */
 
         //在fx层面中添加treeItem
 
         if (getEntries().size()!=8){
             //如果仍然有空位
+
             entries.add(childrenCat);
             catItems.add(childrenCat.getFxTreeItem());
             updateTreeView();
+            //逻辑层与展示层添加cat
+
+            //server.showMeFat();
+
+            if(!server.isReading())
+                 server.addCat(childrenCat);
+            //server层添加cat,server初始化的时候不需要添加
+
             return getEntries().size()-1;
         }
         return CAT_IS_FULL;
@@ -91,6 +112,7 @@ public class Catalogue implements CatEntry{
 
 
     }
+
     public void updateTreeView() {
         this.getFxTreeItem().getChildren().clear();
         for (TreeItem addItem:
@@ -156,6 +178,10 @@ public class Catalogue implements CatEntry{
 
     public String getAbsPath() {
         return absPath;
+    }
+
+    public Server getServer() {
+        return server;
     }
 
     public void setServer(Server server) {

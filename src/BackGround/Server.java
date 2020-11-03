@@ -5,14 +5,19 @@ import FrontHead.content.VirtualFile;
 import sample.Controller;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Server {
     Controller controller;
     private File diskFile;
     private int[] fatTable;
-    private String bufferIn;  		//读缓冲
-    private String bufferOut;  		//写缓冲
+    private String writeBuffer;  		//写缓冲
+    private byte[] readBuffer = new byte[64];  		//读缓冲
+    private boolean Reading = false;
 
     private Vector<byte[]> curCatalogue;
     //private String[] curCatalogue;
@@ -24,6 +29,17 @@ public class Server {
     public final static int NO_MORE_DISK_SPACE = 2;
     public final static int FILE_EXISTED = 3;
 
+    public final static String DISK_FILE_PATH = "src/BackGround/diskFile";
+    public final static String TEST_FILE_PATH = "src/BackGround/testFile";
+    public final static String EMPTY_ENTRY = "$0000000";//空目录项
+
+    public boolean isReading() {
+        return Reading;
+    }
+
+    public void setReading(boolean reading) {
+        Reading = reading;
+    }
 
     public Server () throws IOException {
         init();
@@ -40,7 +56,7 @@ public class Server {
         fatTable = new int[128];
         curCatalogue = new Vector<>(8);
         int ftLength = fatTable.length;
-        this.diskFile = new File("src/BackGround/diskFile");
+        this.diskFile = new File(DISK_FILE_PATH);
         if(diskFile.exists()) {
             InputStream inFat = new FileInputStream(diskFile);
             byte[] inBytes = new byte[ftLength];
@@ -58,6 +74,7 @@ public class Server {
             fatTable[0] = -1;
             fatTable[1] = -1;
             fatTable[2] = -1;//第三个盘块放根目录
+
             //System.out.println("fl is"+fatTable.length);
             for(int i=3; i<ftLength; i++) {
                 fatTable[i] = 0;
@@ -79,7 +96,39 @@ public class Server {
         //初始化fatTable
     }
 
-    private void readCat(){
+    public void readCat(Catalogue catalogue) throws IOException {
+        /*
+        * 该功能仅在程序启动时调用，需要递归遍历各个目录
+        * 根据 catalogue 在底层的bytes生成逻辑层的各个内容
+        * */
+
+        byte[] blockContent = readBlock(catalogue.getFirstBlock());
+        for (int i = 0; i < 8; i++) {
+            byte[] entryBytes =  new byte[8];
+            for (int j = 0; j < 8; j++) {
+                entryBytes[j] = blockContent[i*8+j];
+            }//读取下一个目录项
+
+            if (entryBytes[0]=='$'){
+                continue;
+            }
+            else if(isFileEntry(entryBytes)){
+                //如果是文件目录项
+                Map<String,byte[]> fm = decodeFileEntry(entryBytes);
+                VirtualFile file =
+                        new VirtualFile(new String(fm.get("name")),catalogue,
+                                catalogue.getAbsPath(),this,fm.get("firstBlock")[0]);
+                catalogue.addFileEntry(file);
+            }else {
+                //如果是登记目录项
+                Map<String,byte[]> cm = decodeCatEntry(entryBytes);
+                Catalogue childrenCat =
+                        new Catalogue(new String(cm.get("name")),catalogue,cm.get("firstBlock")[0]);
+                catalogue.addCatEntry(childrenCat);
+                readCat(childrenCat);
+            }
+
+        }
 
     }
     private void initRootCat(OutputStream outFat) throws IOException {
@@ -90,28 +139,14 @@ public class Server {
         //初始化diskFile的时候添加根目录
 
     }
-    private void initRootCat(String name) {
 
-    }
-    public int findNextFreeBlock() {
-        int blockNum = -1;
-        for(int i=3; i<fatTable.length; i++) {
-            if(fatTable[i] == 0) {
-                System.out.println("i is " + i);
-                return i;
-            }
-        }
-        return blockNum;
-    }
+
 
     public int addFile(VirtualFile file) throws IOException {
 
 
-        int curBlock = findNextFreeBlock();//当前所在的盘块号
         //int needBlock = text.length()/64+1;
         int haveBlock = 0;
-
-        file.setFirstBlock(curBlock);
         //curFile.setFileLength(needBlock);
         file.setAttribute("1");//文件属性怎么规定
         {
@@ -165,7 +200,7 @@ public class Server {
         * */
         return text;
     }
-    public void addCat (Catalogue catalogue){
+    public void addCat (Catalogue catalogue) throws IOException {
         /*需要完成的功能
         * 1. server根据传入的catalougue ，获取对应的控制信息（目录项需要的控制信息有1.目录名2.目录属性3.起始盘块号
         * 目录名和目录属性 getName 和 getBlock 即可，目录属性查阅指导书在这个方法可以自己计算），拼接得到
@@ -176,28 +211,32 @@ public class Server {
         *  */
 
         /*
-        * cat目录项信息 (null表示未使用，填写0)
+        * cat目录项信息 (null表示未使用，填写 0 )
         * 内容目录   : | 目  录  名 |  null  | 属性 | 起始盘块号 |  null |
         * byteskey  : | [0][1][2] | [3][4] | [5] |    [6]    |  [7]  |
         * */
-        byte[] entryBytes;
-        System.out.println();
+        byte[] entryBytes  = new byte[0];//准备写入的目录项（写到当前目录下）
+        entryBytes = mergeBytes(entryBytes,catalogue.getName().getBytes(),3); //目录名
+        entryBytes = mergeBytes(entryBytes,new byte[2],2);  //null
+        entryBytes = mergeBytes(entryBytes,new byte[]{8},1);//目录属性
+        entryBytes = mergeBytes(entryBytes,new byte[]{(byte) catalogue.getFirstBlock()},1);
+        entryBytes = mergeBytes(entryBytes,new byte[1],1);
+        // 生成目录项
 
-    }
+        int status = writeEntry(catalogue.getParent(),entryBytes);
+        //将目录项写到diskFile中的对应位置
 
+        fatTable[catalogue.getFirstBlock()] = -1;
+        updateFat();
+        //更新fat表
 
-    public void showMeFat(){
-        /*在控制台直接输出 4*32 fat表*/
-        System.out.println("输出FAT表");
-        for (int i = 0; i < 4; i++) {
-            System.out.print("#"+i*32+" ~ #"+i*32+31+" : ");
-            for (int j = 0; j < 32; j++) {
-                System.out.print(fatTable[i*32+j]);
-            }
-            System.out.println();
+        for (int i = 0; i < 8; i++) {
+            removeEntry(catalogue,i);
         }
+        //将所有目录项置空
 
     }
+
     public void delCat (Catalogue catalogue){
         /*
         * 1. 获取父目录catalougue.getParent()
@@ -252,12 +291,12 @@ public class Server {
 
         rdf.seek((long)curBlock*64);
         if(textNum*64+64 < text.length()) {
-            bufferIn = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
+            writeBuffer = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
             textNum++;
         }else {
-            bufferIn = text.substring(textNum*64, text.length());
+            writeBuffer = text.substring(textNum*64, text.length());
         }
-        rdf.write(bufferIn.getBytes());
+        rdf.write(writeBuffer.getBytes());
         fatTable[curBlock] = -1; //先将fatTable中该项标为已用
         needBlock--;
 
@@ -267,12 +306,12 @@ public class Server {
             fatTable[curBlock] = -1;
             rdf.seek((long)curBlock*64);
             if(textNum*64+64 > text.length()) {
-                bufferIn = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
+                writeBuffer = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
                 textNum++;
             }else {
-                bufferIn = text.substring(textNum*64, text.length());
+                writeBuffer = text.substring(textNum*64, text.length());
             }
-            rdf.write(bufferIn.getBytes());
+            rdf.write(writeBuffer.getBytes());
             needBlock--;
         }
         //将更新后的fat表写进磁盘
@@ -283,6 +322,160 @@ public class Server {
         }
 
         return SAVED_SUCESS;
+    }
+
+
+    /*工具方法集*/
+    public boolean isFileEntry (byte[] entryBytes){
+        /*(使用前需要先判断是不是空目录才能继续判断！！！！！！！！！！！！)
+        * 判断是文件目录项还是等级目录项，登记目录项
+        * 文件目录项为true 登记目录项为fallse*/
+        return (entryBytes[5]!=8)?true:false;
+    }
+    public Map<String , byte[]> decodeCatEntry(byte[] entryBytes){
+        /*将目录项字节留分解成key val对
+        * 可选key：(括号为对应bytes长度)
+        * name(3),ATTR(1),firstBlock（1）
+        *
+        * */
+        Map <String, byte[]> catBytesMap = new HashMap<>();
+        byte[] name = new byte[3];
+        for (int i = 0; i < 3; i++) {
+            name[i] = entryBytes[i];
+        }//获取name
+        byte[] ATTR = new byte[]{entryBytes[5]};
+        byte[] firstBlock = new byte[]{entryBytes[6]};
+        catBytesMap.put("name",name);
+        catBytesMap.put("ATTR",ATTR);
+        catBytesMap.put("firstBlock",firstBlock);
+        return catBytesMap;
+    }
+    public Map<String , byte[]> decodeFileEntry(byte[] entryBytes){
+        /*将目录项字节留分解成key val对
+         * 可选key：
+         * name,type,ATTR,firstBlock,length
+         * */
+        Map <String, byte[]> fileBytesMap = new HashMap<>();
+        byte[] name = new byte[3];
+        for (int i = 0; i < 3; i++) {
+            name[i] = entryBytes[i];
+        }//获取name
+        byte[] type = new byte[2];
+        for (int i = 0; i < 2; i++) {
+            name[i] = entryBytes[i];
+        }//获取type
+        byte[] ATTR = new byte[]{entryBytes[5]};
+        byte[] firstBlock = new byte[]{entryBytes[6]};
+        byte[] length = new byte[]{entryBytes[7]};
+        fileBytesMap.put("name",name);
+        fileBytesMap.put("type",type);
+        fileBytesMap.put("ATTR",ATTR);
+        fileBytesMap.put("firstBlock",firstBlock);
+        fileBytesMap.put("length",length);
+        return fileBytesMap;
+    }
+    public int findNextFreeBlock() {
+        /*字如其意*/
+        int blockNum = -1;
+        for(int i=3; i<fatTable.length; i++) {
+            if(fatTable[i] == 0) {
+                //System.out.println("i is " + i);
+                return i;
+            }
+        }
+        return blockNum;
+    }
+    public void formatting() throws IOException {
+        /*格式化磁盘，用于测试*/
+        new File(DISK_FILE_PATH).delete();
+        init();
+    }
+
+    public void showMeFat(){
+        /*在控制台直接输出 4*32 fat表*/
+        System.out.println("输出FAT表");
+        for (int i = 0; i < 4; i++) {
+            System.out.print("#"+i*32+" ~ #"+ (i*32+31) +" : ");
+            for (int j = 0; j < 32; j++) {
+                System.out.print(fatTable[i*32+j]);
+            }
+            System.out.println();
+        }
+    }
+
+    public byte[] mergeBytes (byte[] bytesA , byte[] bytesB ,int offset){
+        /*连接两个byte数组，在生成目录项的时候可能会用到，如果想连接 String str，传入 str.getBytes() 即可
+        * offset表示bytesB应该的长度，比如生成文件目录项，文件名为 “a” , bytesB 的长度仅仅为 1
+        * 但需要的bytesB长度应该为 3 （目录项文件名的字节长度为3）
+        */
+        byte[] sumBytes = new byte[bytesA.length + offset];
+        int index = 0;
+        for (int i = 0; i < bytesA.length; i++) {
+            sumBytes[index++] = bytesA[i];
+        }
+        for (int i = 0; i < offset; i++) {
+            sumBytes[index++] = (i < bytesB.length) ? bytesB[i] : 0;
+        }
+        return sumBytes;
+    }
+    public void removeEntry (Catalogue catalogue , int index) throws IOException {
+        /*删除catalogue中第index个目录项（从0开始计数）*/
+        byte[] blankBytes = EMPTY_ENTRY.getBytes();
+        RandomAccessFile raf = new RandomAccessFile (new File(DISK_FILE_PATH),"rw");
+
+        long catOffset = catalogue.getFirstBlock()*64 + index*8;
+        raf.seek(catOffset);
+        //获取偏移量
+
+        raf.write(blankBytes);
+
+        raf.close();
+
+    }
+    public int writeEntry (Catalogue catalogue , byte[] entryBytes) throws IOException {
+        /*将 entryBytes(目录项信息，不能是空目录项) 写到 catalogue 中（diskFile层）
+        * */
+        RandomAccessFile raf = new RandomAccessFile (new File(DISK_FILE_PATH),"rw");
+        long catOffset = catalogue.getFirstBlock()*64;
+        raf.seek(catOffset);
+        raf.read(readBuffer,0,64);
+        //将对应的目录项读取出来读到读缓冲
+
+        Pattern p = Pattern.compile("\\"+ EMPTY_ENTRY );
+        Matcher m = p.matcher(new String(readBuffer));
+        //匹配空目录项
+
+        if (m.find()){
+            raf.seek(catOffset + m.start());
+            //找到目录项应该插入的位置
+            raf.write(entryBytes);
+        }else{
+            raf.close();
+            return CAT_IS_FULL;
+        }
+
+        raf.close();
+        return ADD_SUCESS;
+    }
+    public void updateFat() throws IOException {
+        /*将 ！已经修改好！ 的fat表更新到diskFile中*/
+        RandomAccessFile raf = new RandomAccessFile(new File(DISK_FILE_PATH),"rw");
+        byte[] wirteBuf = new byte[128];
+        for (int i = 0; i < 128; i++) {
+            wirteBuf[i] = (byte) fatTable[i];
+        }
+        raf.write(wirteBuf);
+        raf.close();
+    }
+    public byte[] readBlock(int blocksnum) throws IOException {
+        /*读取对应blocknum的块号内容*/
+        byte[] readBuf = new byte[64];
+        RandomAccessFile raf = new RandomAccessFile(new File(DISK_FILE_PATH),"rw");
+        raf.seek(blocksnum*64);
+        raf.read(readBuf,0,64);
+        raf.close();
+        return readBuf;
+
     }
 
 }

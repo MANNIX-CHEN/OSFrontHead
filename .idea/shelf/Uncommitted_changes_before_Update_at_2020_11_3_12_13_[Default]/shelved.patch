@@ -1,0 +1,11 @@
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- README.md	(revision 0458165a706a35191e680956108160a6bef1a2e8)
++++ README.md	(date 1604376265806)
+@@ -1,1 +1,3 @@
+ # OSFrontHead
++
++![service life image](src/REPORT/System_Layer.png)

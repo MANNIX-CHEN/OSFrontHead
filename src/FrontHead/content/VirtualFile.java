@@ -33,10 +33,24 @@ public class VirtualFile implements CatEntry {
         setServer(server);
 
         getServer().addFile(this);
+        setFirstBlock(getFirstBlock());
         setLatestText(new String());
 
         setFxTreeItem(new TreeItem<>(name));
     }
+    public VirtualFile(String name , Catalogue catalogue , String absPant , Server server , int firstBlock) throws IOException {
+        setName(name);
+        setCatalogue(catalogue);
+        setAbsPath(absPant);
+        setServer(server);
+
+        getServer().addFile(this);
+        setFirstBlock(firstBlock);
+        setLatestText(new String());
+
+        setFxTreeItem(new TreeItem<>(name));
+    }
+
 
     public String getLatestText() {
         return latestText;

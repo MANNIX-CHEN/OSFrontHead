@@ -151,7 +151,7 @@ public class Controller {
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
                 try {
-                    curCat.addFileEntry(result.get());
+                    curCat.addFileEntry(new VirtualFile(result.get(),curCat,curCat.getAbsPath(),curCat.getServer()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -166,9 +166,13 @@ public class Controller {
     		dialog.setHeaderText("新建文件夹");
     		dialog.setContentText("请输入文件夹名:");
     		Optional<String> result = dialog.showAndWait();
-    		if (result.isPresent()){
-    		    curCat.addCatEntry(result.get());
-    		    updateFilePane();//添加目录后更新界面
+    		if (result.isPresent()){ //新建文件夹事件
+                try {
+                    curCat.addCatEntry(new Catalogue(result.get(),curCat));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                updateFilePane();//添加目录后更新界面
     		}
 		});
     }
@@ -284,7 +288,7 @@ public class Controller {
 
     }
 
-    private void initcatalogue() {
+    private void initcatalogue() throws IOException {
         rootCat = new Catalogue("C:" , getServer());
         curCat = rootCat;
         filesCatView.setRoot(rootCat.getFxTreeItem());
@@ -349,5 +353,12 @@ public class Controller {
     		System.out.println("右键点击文件（夹）");
     	}
     }
-    
+
+    public void formattingDisk(ActionEvent event) throws IOException {
+        /* 格式化磁盘，用于测试
+        *  可以在菜单栏 -> Help -> format中直接调用
+        * */
+        server.formatting();
+        System.out.println("format!!!!");
+    }
 }
