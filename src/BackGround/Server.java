@@ -1,5 +1,6 @@
 package BackGround;
 
+import FrontHead.content.Catalogue;
 import FrontHead.content.VirtualFile;
 import sample.Controller;
 
@@ -65,7 +66,7 @@ public class Server {
                 int temp = fatTable[i];
                 outFat.write(temp);
             }
-            addCat(outFat);
+            initRootCat(outFat);
 
             //创建好64*128字节的文件
             byte[] areaByte = new byte[64*128-192];
@@ -78,7 +79,7 @@ public class Server {
     private void readCat(){
 
     }
-    private void addCat(OutputStream outFat) throws IOException {
+    private void initRootCat(OutputStream outFat) throws IOException {
         for (int i = 0 ; i < 8 ; i++ ){
             curCatalogue.add(new byte[]{'$','0','0','0','0','0','0','0'});
             outFat.write(curCatalogue.get(0));
@@ -86,7 +87,7 @@ public class Server {
         //初始化diskFile的时候添加根目录
 
     }
-    private void addCat(String name) {
+    private void initRootCat(String name) {
 
     }
     public int findNextFreeBlock() {
@@ -146,6 +147,71 @@ public class Server {
 
         return ADD_SUCESS;
     }
+    public String readFile (int firstBlock){
+        String text = new String();
+        /*步骤
+        * 1. 根据传入firstBlock查询fat表
+        * 2. 根据fat表读取text，伪代码如下:
+        * int curBlock = firstBlock
+        * while(curBlock != -1){
+        *   String termText = getDiskText (curBlock)
+        *   text += termText
+        *   curBlock = fatTable[curBlock]
+        * }
+        * 3. 返回text值
+        * */
+        return text;
+    }
+    public void addCat (Catalogue catalogue){
+        /*需要完成的功能
+        * 1. server根据传入的catalougue ，获取对应的控制信息（目录项需要的控制信息有1.目录名2.目录属性3.起始盘块号
+        * 目录名和目录属性getName和getBlock即可，目录属性查阅指导书在这个方法可以自己计算），拼接得到
+        * 将登记目录项的信息以byte[ ]的形式写入diskFile（写到程序当前的目录的位置）
+        * 2. 更新fat表
+        * 3. 初始化新增的文件夹在diskFile的目录项（就是写入8个空目录项，即"$0000000"）到catalougue的diskFile区域
+        * ************ #1步 和 #3 步写到diskFile的位置应该是不一致的，需要加以区分 **********
+        *  */
+    }
+    public void delCat (Catalogue catalogue){
+        /*
+        * 1. 获取父目录catalougue.getParent()
+        * 2. 获取父目录在diskFile的信息删除对应的目录项
+        * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
+        * 3. 获取起始盘块号码catalougue.getFirstBlock()
+        * 4. 将fat表对应的val置0（表示该盘块空闲）
+        * */
+    }
+    public void changeCat (Catalogue catalogue){
+        /*
+        * 这个函数其实就只有更改目录名的功能
+        * 实现方法1：直接先调用一次 delCat，再调用一次addCat
+        *（还需要更新上一层Catalogue的firstBlick）
+        *
+        * 实现方法2：一般只有变更文件名的需求
+        * 所以找到对应的目录项，将对应的目录名字的部分修改即可
+        * */
+    }
+    public void delFile(VirtualFile file){
+        /*
+         * 这个方法和delCat结构是差不多的，可以互相参照
+         * 1. 获取父录file.getCatalogue()
+         * 2. 获取父目录在diskFile的信息删除对应的目录项
+         * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
+         * 3. 获取起始盘块号码file.getFirstBlock()
+         * 4. 将fat表对应的val置0（表示该盘块空闲）
+         * */
+    }
+    public void changeFileATTR (VirtualFile file){
+        /* 这个方法需要与saveFile区分开，一个是修改文件的内容，一个是修改文件的属性
+         * 同理这个方法和changeCat结构是差不多的，可以互相参照
+         *
+         * 实现方法1：直接先调用一次 delFile，再调用一次addFile
+         *（还需要更新file的firstBlock）
+         *
+         * 实现方法2：先依旧按更该文件名的功能来做，后续可能有更多的需求
+         * 所以找到对应的目录项，将对应的目录名字的部分修改即可
+         * */
+    }
     public int saveFile(VirtualFile file) throws IOException {
         byte[] curByte = null;//多次写入磁盘文件的byte数组
         String text = file.getLatestText();
@@ -192,9 +258,5 @@ public class Server {
 
         return SAVED_SUCESS;
     }
-    public String readFile() throws IOException {
-        RandomAccessFile raf = new RandomAccessFile(diskFile,"r");
-        raf.seek(64);
-        return new String();
-    }
+
 }

@@ -16,6 +16,7 @@ public class Catalogue implements CatEntry{
     private Vector<TreeItem> fileItems;
     private String absPath;
     private Server server;
+    private int firstBlock;
     private Catalogue parent;
     private String name;
     private final Image CLOSE_FLODER_IMG = new Image("FrontHead/UI/close_floder_treeView.png");
@@ -31,6 +32,7 @@ public class Catalogue implements CatEntry{
         initCat(rootCatName);
         absPath = getName();
         setServer(server);
+        setFirstBlock(server.findNextFreeBlock());
     }
 
     public Catalogue (String catName , Catalogue parentCat){
@@ -158,5 +160,13 @@ public class Catalogue implements CatEntry{
 
     public void setServer(Server server) {
         this.server = server;
+    }
+
+    public int getFirstBlock() {
+        return firstBlock;
+    }
+
+    public void setFirstBlock(int firstBlock) {
+        this.firstBlock = firstBlock;
     }
 }
