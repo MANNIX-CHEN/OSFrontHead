@@ -25,7 +25,7 @@ public class Catalogue implements CatEntry{
 
     private static final int CAT_IS_FULL = -1;
 
-    /*以下为未与后台整合的部分*/
+
     public Catalogue(String rootCatName , Server server){
         /*构造root目录,不需要传入父目录*/
         setParent(null);

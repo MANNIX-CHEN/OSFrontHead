@@ -25,8 +25,10 @@ public class Server {
     public final static int FILE_EXISTED = 3;
 
 
+    public Server () throws IOException {
+        init();
+    }
     public Server(Controller controller) throws IOException {
-        fatTable = new int[128];
         setController(controller);
         init();
         //readFile();
@@ -35,6 +37,7 @@ public class Server {
         this.controller = controller;
     }
     private void init() throws IOException {
+        fatTable = new int[128];
         curCatalogue = new Vector<>(8);
         int ftLength = fatTable.length;
         this.diskFile = new File("src/BackGround/diskFile");
@@ -165,12 +168,35 @@ public class Server {
     public void addCat (Catalogue catalogue){
         /*需要完成的功能
         * 1. server根据传入的catalougue ，获取对应的控制信息（目录项需要的控制信息有1.目录名2.目录属性3.起始盘块号
-        * 目录名和目录属性getName和getBlock即可，目录属性查阅指导书在这个方法可以自己计算），拼接得到
+        * 目录名和目录属性 getName 和 getBlock 即可，目录属性查阅指导书在这个方法可以自己计算），拼接得到
         * 将登记目录项的信息以byte[ ]的形式写入diskFile（写到程序当前的目录的位置）
         * 2. 更新fat表
         * 3. 初始化新增的文件夹在diskFile的目录项（就是写入8个空目录项，即"$0000000"）到catalougue的diskFile区域
         * ************ #1步 和 #3 步写到diskFile的位置应该是不一致的，需要加以区分 **********
         *  */
+
+        /*
+        * cat目录项信息 (null表示未使用，填写0)
+        * 内容目录   : | 目  录  名 |  null  | 属性 | 起始盘块号 |  null |
+        * byteskey  : | [0][1][2] | [3][4] | [5] |    [6]    |  [7]  |
+        * */
+        byte[] entryBytes;
+        System.out.println();
+
+    }
+
+
+    public void showMeFat(){
+        /*在控制台直接输出 4*32 fat表*/
+        System.out.println("输出FAT表");
+        for (int i = 0; i < 4; i++) {
+            System.out.print("#"+i*32+" ~ #"+i*32+31+" : ");
+            for (int j = 0; j < 32; j++) {
+                System.out.print(fatTable[i*32+j]);
+            }
+            System.out.println();
+        }
+
     }
     public void delCat (Catalogue catalogue){
         /*
