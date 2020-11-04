@@ -33,7 +33,6 @@ public class VirtualFile implements CatEntry {
         setServer(server);
 
         setFirstBlock(server.findNextFreeBlock());
-        System.out.println("file fb is " + getFirstBlock());
         getServer().addFile(this);
 
         setLatestText(new String());

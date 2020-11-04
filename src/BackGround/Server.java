@@ -253,8 +253,6 @@ public class Server {
         int status = writeEntry(catalogue.getParent(),entryBytes);
         //将目录项写到diskFile中的对应位置
 
-        System.out.println("this cat fb is " + catalogue.getFirstBlock());
-
         fatTable[catalogue.getFirstBlock()] = -1;
         updateFat();
         //更新fat表
