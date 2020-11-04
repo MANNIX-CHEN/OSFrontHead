@@ -15,7 +15,7 @@ public class Server {
     Controller controller;
     private File diskFile;
     private int[] fatTable;
-    private String writeBuffer;  		//写缓冲
+    private byte[] writeBuffer;  		//写缓冲
     private byte[] readBuffer = new byte[64];  		//读缓冲
     private boolean Reading = false;
 
@@ -141,9 +141,34 @@ public class Server {
     }
 
 
-
     public int addFile(VirtualFile file) throws IOException {
+        /*
+         * 1. 根据传入的file，获取对应的控制信息（文件目录项需要的信息有 1.文件名 2.文件类型 3.文件属性 4.文件初始盘块号 5.文件长度 ）
+         *   其中 1.文件名 4.文件初始盘块号 可以调用 file.geName 和 getBlock 调用
+         *    2.文件类型名，即表示该文件是.xx 默认为 ".rw"所以这个就直接 typeBytes = new bytes[]{'r','w'}即可
+         *    3.文件属性默认表示可读可写的文件，即 ATTRBytes = new bytes[]{4}
+         *    5. 文件长度，新建的文件text为空，但仍然占用一个盘块，所以这个属性默认为 1 即可， 即lenBytes = new bytes[]{1}
+         *  根据以上属性拼接得到目录项 bytes[] ( 名称为entryBytes )，写入当前目录中
+         *  2. 更新fat表
+         *  */
 
+        /*
+         * cat目录项信息 (null表示未使用，填写 0 )
+         * 内容目录   : | 文  件  名 |  类型名 | 属性 | 起始盘块号 |  文件长度 |
+         * byteskey  : | [0][1][2] | [3][4] | [5] |    [6]    |    [7]   |
+         * */
+        byte[] entryBytes = new byte[0];
+        entryBytes = mergeBytes(entryBytes, file.getName().getBytes(), 3);
+        entryBytes = mergeBytes(entryBytes, new byte[] {'r','w'}, 2);
+        entryBytes = mergeBytes(entryBytes, new byte[] {4}, 1);//
+        entryBytes = mergeBytes(entryBytes, new byte[]{(byte) file.getFirstBlock()}, 1);
+        entryBytes = mergeBytes(entryBytes, new byte[] {1}, 1);
+
+        fatTable[file.getFirstBlock()] = -1;
+
+        int status = writeEntry(file.getCatalogue(),entryBytes);
+
+        updateFat();
 
         //int needBlock = text.length()/64+1;
         int haveBlock = 0;
@@ -185,20 +210,33 @@ public class Server {
 
         return ADD_SUCESS;
     }
+
+
     public String readFile (int firstBlock){
-        String text = new String();
+        StringBuffer text = new StringBuffer();
         /*步骤
-        * 1. 根据传入firstBlock查询fat表
-        * 2. 根据fat表读取text，伪代码如下:
-        * int curBlock = firstBlock
-        * while(curBlock != -1){
-        *   String termText = getDiskText (curBlock)
-        *   text += termText
-        *   curBlock = fatTable[curBlock]
-        * }
-        * 3. 返回text值
-        * */
-        return text;
+         * 1. 根据传入firstBlock查询fat表
+         * 2. 根据fat表读取text，伪代码如下:
+         * int curBlock = firstBlock
+         * while(curBlock != -1){
+         *   String termText = getDiskText (curBlock) 用readBlock读取后再转换回字符串
+         *   text += termText
+         *   curBlock = fatTable[curBlock]
+         * }
+         * 3. 返回text值
+         * */
+        int curBlock = firstBlock;
+        while(curBlock != -1) {
+            try {
+                byte[] thisBytes = readBlock(curBlock);
+                text.append(new String(thisBytes));
+                curBlock = fatTable[curBlock];
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return text.toString();
     }
     public void addCat (Catalogue catalogue) throws IOException {
         /*需要完成的功能
@@ -237,24 +275,108 @@ public class Server {
 
     }
 
-    public void delCat (Catalogue catalogue){
+    public void delCat (Catalogue catalogue) throws IOException {
         /*
-        * 1. 获取父目录catalougue.getParent()
-        * 2. 获取父目录在diskFile的信息删除对应的目录项
-        * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
-        * 3. 获取起始盘块号码catalougue.getFirstBlock()
-        * 4. 将fat表对应的val置0（表示该盘块空闲）
-        * */
+         * 1. 获取父目录catalougue.getParent()
+         * 2. 获取父目录在diskFile的信息删除对应的目录项
+         * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
+         * 3. 获取起始盘块号码catalougue.getFirstBlock()
+         * 4. 将fat表对应的val置0（表示该盘块空闲）
+         * */
+
+        Catalogue parent = catalogue.getParent();
+        //获取父目录
+
+        byte[] parentInfo = readBlock(parent.getFirstBlock());
+        //获取父目录在diskFile信息
+
+
+        for (int i = 0; i < 8; i++) {
+            byte [] entryBytes = new byte[8];
+            for (int j = 0; j < 8; j++) {
+                entryBytes[j] = parentInfo[i*8+j];
+            }//获取单个目录项
+            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            //获取当前目录项的名字
+
+            if (curCatName.equals(catalogue.getName())){
+                //如果当前目录项匹配到需要del的目录
+                removeEntry(parent,i);
+                //移除匹配到的目录项
+            }else {
+                //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
+            }
+        }
+
+        fatTable[catalogue.getFirstBlock()] = 0;
+        updateFat();
+        //获取起始盘块号
+
+
+        //fatTable[val] = null;
+        //fat表val置0
     }
-    public void changeCat (Catalogue catalogue){
+
+//    public void delCat (Catalogue catalogue){
+//        /*
+//         * 1. 获取父目录catalougue.getParent()
+//         * 2. 获取父目录在diskFile的信息删除对应的目录项
+//         * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
+//         * 3. 获取起始盘块号码catalougue.getFirstBlock()
+//         * 4. 将fat表对应的val置0（表示该盘块空闲）
+//         * */
+//        String parentcat = new string();
+//        parentcat = catalogue.getParent();
+//        //获取父目录
+//
+//        //获取父目录在diskFile信息
+//
+//        int block = catalogue.getFirstBlock();
+//        //获取起始盘块号
+//
+//        fatTable[val] = null;
+//        //fat表val置0
+//
+//    }
+
+    public void changeCat (Catalogue catalogue) throws IOException {
         /*
-        * 这个函数其实就只有更改目录名的功能
-        * 实现方法1：直接先调用一次 delCat，再调用一次addCat
-        *（还需要更新上一层Catalogue的firstBlick）
-        *
-        * 实现方法2：一般只有变更文件名的需求
+        * 一般只有变更文件名的需求
         * 所以找到对应的目录项，将对应的目录名字的部分修改即可
         * */
+
+        byte[] parentInfo = readBlock(catalogue.getParent().getFirstBlock());
+        for (int i = 0; i < 8; i++) {
+            byte [] curEntryBytes = new byte[8];
+            for (int j = 0; j < 8; j++) {
+                curEntryBytes[j] = parentInfo[i*8+j];
+            }//获取单个目录项
+            int curBLock = decodeCatEntry(curEntryBytes).get("firstBlock")[0];
+            //获取当前目录项的盘块号
+
+            if (curBLock == catalogue.getFirstBlock()){
+                //如果当前目录项匹配到需要change的目录项
+                byte[] entryBytes  = new byte[0];//准备写入的目录项（写到当前目录下）
+                entryBytes = mergeBytes(entryBytes,catalogue.getName().getBytes(),3); //目录名
+                entryBytes = mergeBytes(entryBytes,new byte[2],2);  //null
+                entryBytes = mergeBytes(entryBytes,new byte[]{8},1);//目录属性
+                entryBytes = mergeBytes(entryBytes,new byte[]{(byte) catalogue.getFirstBlock()},1);
+                entryBytes = mergeBytes(entryBytes,new byte[1],1);
+                int status = writeEntry(catalogue.getParent(),entryBytes);
+                //生成目录项，并加入父目录
+            }else {
+                //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
+            }
+        }
+
+
+
+
+
+        //将目录项写到diskFile中的对应位置
+
+
+
     }
     public void delFile(VirtualFile file){
         /*
@@ -277,52 +399,49 @@ public class Server {
          * 所以找到对应的目录项，将对应的目录名字的部分修改即可
          * */
     }
+
     public int saveFile(VirtualFile file) throws IOException {
-        byte[] curByte = null;//多次写入磁盘文件的byte数组
         String text = file.getLatestText();
         int curBlock = file.getFirstBlock();
-        int needBlock = text.length()/64+1;
+        int needBlock = file.getFileLength()/64+1;
         RandomAccessFile rdf = new RandomAccessFile(diskFile,"rw");
 
         System.out.println("curblock is " + curBlock);
         int lastFatNum = curBlock;//记录上一次的盘块号
         int textNum = 0;//第几个text剪切段，因为存在缓冲区，text可能要分多次写入磁盘
-        int freeCatalogue;//第几个目录项时空闲 的
 
-        rdf.seek((long)curBlock*64);
-        if(textNum*64+64 < text.length()) {
-            writeBuffer = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
-            textNum++;
-        }else {
-            writeBuffer = text.substring(textNum*64, text.length());
-        }
-        rdf.write(writeBuffer.getBytes());
-        fatTable[curBlock] = -1; //先将fatTable中该项标为已用
-        needBlock--;
+//        rdf.seek((long)curBlock*64);
+//        if(textNum*64+64 < text.length()) {
+//            writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();//0=64?0-63?
+//            textNum++;
+//        }else {
+//            writeBuffer = text.substring(textNum*64, text.length()).getBytes();
+//        }
+//        rdf.write(writeBuffer);
+//        fatTable[curBlock] = -1; //先将fatTable中该项标为已用
 
         while(needBlock > 0) {
             curBlock = findNextFreeBlock();
-            fatTable[lastFatNum] = curBlock;
-            fatTable[curBlock] = -1;
+            if(needBlock > 1) {
+                fatTable[lastFatNum] = curBlock;
+            }
             rdf.seek((long)curBlock*64);
             if(textNum*64+64 > text.length()) {
-                writeBuffer = text.substring(textNum*64, textNum*64+64);//0=64?0-63?
+                writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();//0=64?0-63?
                 textNum++;
             }else {
-                writeBuffer = text.substring(textNum*64, text.length());
+                writeBuffer = text.substring(textNum*64, text.length()).getBytes();
             }
-            rdf.write(writeBuffer.getBytes());
+            rdf.write(writeBuffer);
             needBlock--;
         }
-        //将更新后的fat表写进磁盘
-        rdf.seek(0);
-        for(int i=0; i<fatTable.length; i++) {
-            int temp = fatTable[i];
-            rdf.write(temp);
-        }
-
+        fatTable[curBlock] = -1;
+        updateFat();
+        rdf.close();
         return SAVED_SUCESS;
     }
+
+
 
 
     /*工具方法集*/
@@ -431,6 +550,22 @@ public class Server {
 
         raf.close();
 
+    }
+    public int writeEntry (Catalogue catalogue , byte[] entryBytes ,int index) throws IOException {
+        /*将 entryBytes(目录项信息，不能是空目录项) 写到 catalogue 指定的index中（diskFile层）
+         * */
+        RandomAccessFile raf = new RandomAccessFile (new File(DISK_FILE_PATH),"rw");
+        long catOffset = catalogue.getFirstBlock()*64;
+        raf.seek(catOffset);
+        raf.read(readBuffer,0,64);
+        //将对应的目录项读取出来读到读缓冲
+
+        raf.seek(catOffset + index*8);
+        //找到目录项应该插入的位置
+        raf.write(entryBytes);
+
+        raf.close();
+        return ADD_SUCESS;
     }
     public int writeEntry (Catalogue catalogue , byte[] entryBytes) throws IOException {
         /*将 entryBytes(目录项信息，不能是空目录项) 写到 catalogue 中（diskFile层）

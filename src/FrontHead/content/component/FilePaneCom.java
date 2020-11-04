@@ -32,6 +32,7 @@ public abstract class FilePaneCom extends StackPane {
         img = new Button();
         title = new Label();
         setController(controller);
+        setServer(controller.getServer());
 
         //设置自己的样式
         getStyleClass().add("filePaneComPane");

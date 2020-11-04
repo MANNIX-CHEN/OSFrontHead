@@ -2,7 +2,10 @@ package FrontHead.content.component;
 
 
 import FrontHead.content.Catalogue;
+import javafx.scene.input.MouseEvent;
 import sample.Controller;
+
+import java.io.IOException;
 
 
 public class CatCom extends FilePaneCom {
@@ -12,6 +15,14 @@ public class CatCom extends FilePaneCom {
     public CatCom(String name , Controller controller , Catalogue catalogue) {
         super(name,controller);
         setCatalogue(catalogue);
+        addEventHandler(MouseEvent.MOUSE_CLICKED , event->{
+            try {
+                delCat();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        });
     }
 
     @Override
@@ -30,5 +41,11 @@ public class CatCom extends FilePaneCom {
 
     public void setCatalogue(Catalogue catalogue) {
         this.catalogue = catalogue;
+    }
+    public void delCat() throws IOException {
+
+        //逻辑层
+
+        server.delCat(catalogue);
     }
 }
