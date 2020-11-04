@@ -55,7 +55,6 @@ public abstract class FilePaneCom extends StackPane {
 
             getStyleClass().add("test_red_back");
 
-
             clickNum ++;
             Timer timer = new Timer();
             if (clickNum==2){

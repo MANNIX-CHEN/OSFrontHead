@@ -165,7 +165,6 @@ public class Server {
         entryBytes = mergeBytes(entryBytes, new byte[] {1}, 1);
 
         fatTable[file.getFirstBlock()] = -1;
-
         int status = writeEntry(file.getCatalogue(),entryBytes);
 
         updateFat();
@@ -196,17 +195,7 @@ public class Server {
                 haveBlock++;
             }
         }
-//        if(haveBlock < needBlock) {
-//            System.out.println("磁盘容量不足");
-//            return NO_MORE_DISK_SPACE;
-//        }//判断是否还有足够的空闲块
 
-//        for (i = 0; i < 8; i++) {
-//            if (fileName.equals(curCatalogue[i].substring(0, 2))) {
-//                System.out.println("文件已存在");
-//                return FILE_EXISTED;
-//            }
-//        }
 
         return ADD_SUCESS;
     }
@@ -263,6 +252,8 @@ public class Server {
 
         int status = writeEntry(catalogue.getParent(),entryBytes);
         //将目录项写到diskFile中的对应位置
+
+        System.out.println("this cat fb is " + catalogue.getFirstBlock());
 
         fatTable[catalogue.getFirstBlock()] = -1;
         updateFat();
@@ -403,40 +394,44 @@ public class Server {
     public int saveFile(VirtualFile file) throws IOException {
         String text = file.getLatestText();
         int curBlock = file.getFirstBlock();
-        int needBlock = file.getFileLength()/64+1;
+        file.setFileLength(text.length()/64);
+        int needBlock = text.length()/64+1;
         RandomAccessFile rdf = new RandomAccessFile(diskFile,"rw");
 
-        System.out.println("curblock is " + curBlock);
+        int termBlock = fatTable[curBlock];
+        while (termBlock!=-1){
+            int x = fatTable[termBlock];
+            fatTable[termBlock] = 0;
+            updateFat();
+            termBlock = x;
+        }//将磁盘块先释放
+
         int lastFatNum = curBlock;//记录上一次的盘块号
         int textNum = 0;//第几个text剪切段，因为存在缓冲区，text可能要分多次写入磁盘
 
-//        rdf.seek((long)curBlock*64);
-//        if(textNum*64+64 < text.length()) {
-//            writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();//0=64?0-63?
-//            textNum++;
-//        }else {
-//            writeBuffer = text.substring(textNum*64, text.length()).getBytes();
-//        }
-//        rdf.write(writeBuffer);
-//        fatTable[curBlock] = -1; //先将fatTable中该项标为已用
-
+        writeBuffer = new byte[64];
         while(needBlock > 0) {
-            curBlock = findNextFreeBlock();
-            if(needBlock > 1) {
-                fatTable[lastFatNum] = curBlock;
-            }
             rdf.seek((long)curBlock*64);
-            if(textNum*64+64 > text.length()) {
-                writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();//0=64?0-63?
-                textNum++;
+            if(textNum >= text.length()/64 ) {
+                //写入最后一个剪切段
+                for (int i = 0; i < 64; i++) {
+                    writeBuffer[i] = (textNum*64+i<text.length())?
+                            (text.substring(textNum*64).getBytes()[i]):(0);
+                    fatTable[curBlock] = -1;
+                    updateFat();
+                }
             }else {
-                writeBuffer = text.substring(textNum*64, text.length()).getBytes();
+                //写入整整64个剪切段
+                writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();
+                textNum++;
+                fatTable[curBlock] = findNextFreeBlock();
+                updateFat();
             }
             rdf.write(writeBuffer);
+            curBlock = findNextFreeBlock();
             needBlock--;
+
         }
-        fatTable[curBlock] = -1;
-        updateFat();
         rdf.close();
         return SAVED_SUCESS;
     }

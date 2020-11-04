@@ -15,14 +15,6 @@ public class CatCom extends FilePaneCom {
     public CatCom(String name , Controller controller , Catalogue catalogue) {
         super(name,controller);
         setCatalogue(catalogue);
-        addEventHandler(MouseEvent.MOUSE_CLICKED , event->{
-            try {
-                delCat();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        });
     }
 
     @Override

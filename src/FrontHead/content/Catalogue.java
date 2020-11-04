@@ -101,6 +101,7 @@ public class Catalogue implements CatEntry{
 
             //server.showMeFat();
 
+
             if(!server.isReading())
                  server.addCat(childrenCat);
             //server层添加cat,server初始化的时候不需要添加

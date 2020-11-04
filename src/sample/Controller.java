@@ -213,6 +213,7 @@ public class Controller {
 
 
     public void updateFilePane(Catalogue nextCurCat){
+
         setCurCat(nextCurCat);
         curCat.updateTreeView();
         updateFilePane();
@@ -360,5 +361,11 @@ public class Controller {
         * */
         server.formatting();
         System.out.println("format!!!!");
+    }
+    public void showMeFat(ActionEvent event) throws IOException {
+        server.showMeFat();
+    }
+    public void findNextBlock(ActionEvent event) throws IOException {
+        System.out.println("next block is " + server.findNextFreeBlock());
     }
 }

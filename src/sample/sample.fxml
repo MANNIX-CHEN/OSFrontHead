@@ -31,6 +31,8 @@
                   <items>
                     <MenuItem mnemonicParsing="false" text="About" />
                         <MenuItem mnemonicParsing="false" onAction="#formattingDisk" text="formatDisk" />
+                        <MenuItem mnemonicParsing="false" onAction="#showMeFat" text="fat" />
+                        <MenuItem mnemonicParsing="false" onAction="#findNextBlock" text="findeNextBlock" />
                   </items>
                 </Menu>
               </menus>

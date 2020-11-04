@@ -82,7 +82,8 @@ public class FileTextPane extends Application {
     private void saveFile() throws IOException {
         latesText = TA.getText();
         file.setLatestText(latesText);
-        System.out.println("saveFile " + server.saveFile(file));
+        server.saveFile(file);
+        //System.out.println("saveFile " + server.saveFile(file));
     }
 
 
@@ -101,6 +102,7 @@ public class FileTextPane extends Application {
         TA.getStyleClass().add("textArea");
         TA.setPrefWidth(root.getScene().getWidth());
         TA.setPrefHeight(root.getScene().getHeight()-MENU_HEIGHT);
+        TA.setText(server.readFile(file.getFirstBlock()));
         root.getChildren().add(TA);
     }
 

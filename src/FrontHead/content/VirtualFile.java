@@ -32,8 +32,10 @@ public class VirtualFile implements CatEntry {
         setAbsPath(absPant);
         setServer(server);
 
+        setFirstBlock(server.findNextFreeBlock());
+        System.out.println("file fb is " + getFirstBlock());
         getServer().addFile(this);
-        setFirstBlock(getFirstBlock());
+
         setLatestText(new String());
 
         setFxTreeItem(new TreeItem<>(name));
@@ -44,7 +46,7 @@ public class VirtualFile implements CatEntry {
         setAbsPath(absPant);
         setServer(server);
 
-        getServer().addFile(this);
+       // getServer().addFile(this);
         setFirstBlock(firstBlock);
         setLatestText(new String());
 
