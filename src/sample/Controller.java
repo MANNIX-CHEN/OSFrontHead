@@ -60,7 +60,6 @@ public class Controller {
     @FXML
     private TextField curAbsPath;
     
-    ReadDiskFile rd;//读取diskfile的文件信息
     Server server;
 
 
@@ -70,6 +69,8 @@ public class Controller {
     FilePaneCom[] curFPaneComs;
     Vector<VirtualFile> curOpenFiles;
     int[] fat;
+
+    public boolean contextFlag =false;
 
 
     /*以下为已经打开文件表格data（需要与对应的的table区别开）*/
