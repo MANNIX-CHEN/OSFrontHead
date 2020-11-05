@@ -19,7 +19,6 @@ public class CatCom extends FilePaneCom {
     Catalogue catalogue;
     protected MenuItem intoFile,delFile,fileData,renameFile;
     protected ContextMenu fileContextMenu2;
-    protected Controller controller;
 
     public CatCom(String name , Controller controller , Catalogue catalogue) {
         super(name,controller);

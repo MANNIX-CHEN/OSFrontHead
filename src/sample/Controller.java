@@ -59,7 +59,7 @@ public class Controller {
     private FlowPane filePane;
     @FXML
     private TextField curAbsPath;
-    
+
     Server server;
 
 
@@ -68,6 +68,7 @@ public class Controller {
     private Catalogue curCat ;//当前目录
     FilePaneCom[] curFPaneComs;
     Vector<VirtualFile> curOpenFiles;
+    private FilePaneCom curClickedCom ;
     int[] fat;
 
     public boolean contextFlag =false;
@@ -81,6 +82,14 @@ public class Controller {
 
 
     /*getter&setter*/
+
+    public FilePaneCom getCurClickedCom() {
+        return curClickedCom;
+    }
+
+    public void setCurClickedCom(FilePaneCom curClickedCom) {
+        this.curClickedCom = curClickedCom;
+    }
 
     public Server getServer() {
         return server;
@@ -109,79 +118,80 @@ public class Controller {
         intDiskPane();//初始化磁盘分配情况页面
 
     }
-    
+
     public void initContextMenu() {
-    	fileContextMenu=new ContextMenu();
-    	newFile = new MenuItem("新建文件");
-    	newFolder = new MenuItem("新建文件夹");
-    	fileContextMenu.getItems().addAll(newFile,newFolder);
-    	filePane.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
+        fileContextMenu=new ContextMenu();
+        newFile = new MenuItem("新建文件");
+        newFolder = new MenuItem("新建文件夹");
+        fileContextMenu.getItems().addAll(newFile,newFolder);
+        filePane.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 
-			if (event.getButton() == MouseButton.SECONDARY
+            if (curClickedCom==null&&event.getButton() == MouseButton.SECONDARY
                     && !fileContextMenu2.isShowing()) {
-				fileContextMenu.show(filePane, event.getScreenX(), event.getScreenY());
-			} else {
-				fileContextMenu.hide();
-			}
-		});
+                fileContextMenu.show(filePane, event.getScreenX(), event.getScreenY());
+            } else {
+                fileContextMenu.hide();
+            }
+        });
 
-    	/*文件右键菜单*/
-    	fileContextMenu2=new ContextMenu();
-    	openFile = new MenuItem("打开");
-    	delFile = new MenuItem("删除");
-    	fileData = new MenuItem("属性");
-    	renameFile = new MenuItem("重命名");
-    	fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
-    	parentCat.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
-			if (event.getButton() == MouseButton.SECONDARY && !fileContextMenu.isShowing()) {
-				fileContextMenu2.show(parentCat, event.getScreenX(), event.getScreenY());
-			} else {
-				fileContextMenu2.hide();
-			}
-		});
+        /*文件右键菜单*/
+        fileContextMenu2=new ContextMenu();
+        openFile = new MenuItem("打开");
+        delFile = new MenuItem("删除");
+        fileData = new MenuItem("属性");
+        renameFile = new MenuItem("重命名");
+        fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
+//        parentCat.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
+//
+//            if (event.getButton() == MouseButton.SECONDARY && !fileContextMenu.isShowing()) {
+//                fileContextMenu2.show(parentCat, event.getScreenX(), event.getScreenY());
+//            } else {
+//                fileContextMenu2.hide();
+//            }
+//        });
     }
-    
+
     /*下拉菜单功能实现*/
     public void setOnActionMenuItem() {
-    	newFile.setOnAction(ActionEvent -> {
-			//System.out.println("新建文件");
-    		TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("新建文件");
-    		dialog.setHeaderText("新建文件");
-    		dialog.setContentText("请输入文件名:");
-    		Optional<String> result = dialog.showAndWait();
-    		if (result.isPresent()){
+        newFile.setOnAction(ActionEvent -> {
+            //System.out.println("新建文件");
+            TextInputDialog dialog=new TextInputDialog();
+            dialog.setTitle("新建文件");
+            dialog.setHeaderText("新建文件");
+            dialog.setContentText("请输入文件名:");
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()){
                 try {
                     curCat.addFileEntry(new VirtualFile(result.get(),curCat,curCat.getAbsPath(),curCat.getServer()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 updateFilePane();
-    		}
-		});
-    	
-    	newFolder.setOnAction(ActionEvent -> {
-			//System.out.println("新建文件夹");
-    		TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("新建文件夹");
-    		dialog.setHeaderText("新建文件夹");
-    		dialog.setContentText("请输入文件夹名:");
-    		Optional<String> result = dialog.showAndWait();
-    		if (result.isPresent()){ //新建文件夹事件
+            }
+        });
+
+        newFolder.setOnAction(ActionEvent -> {
+            //System.out.println("新建文件夹");
+            TextInputDialog dialog=new TextInputDialog();
+            dialog.setTitle("新建文件夹");
+            dialog.setHeaderText("新建文件夹");
+            dialog.setContentText("请输入文件夹名:");
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()){ //新建文件夹事件
                 try {
                     curCat.addCatEntry(new Catalogue(result.get(),curCat));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 updateFilePane();//添加目录后更新界面
-    		}
-		});
+            }
+        });
     }
 
 
     public void updateFilePane() {
         /*更新filePane，先clear所有组件，然后根据curCat添加组件
-        * */
+         * */
         curAbsPath.setText(curCat.getAbsPath());
         filePane.getChildren().clear();//清空所有组件
 
@@ -193,7 +203,7 @@ public class Controller {
         Vector<CatEntry> curCatEntries  = curCat.getEntries();
         /*两个for循环添加组件 先文件夹，然后再文件*/
         for (CatEntry cat :
-             curCatEntries) {
+                curCatEntries) {
             if (cat.toString().matches("(.*)Catalogue(.*)")){
                 //正则表达式匹配 catalogue
                 CatCom addCom = new CatCom(cat.getName(), this, (Catalogue) cat);
@@ -231,12 +241,12 @@ public class Controller {
     private void updateOpenFilesTable() {
         openFilesData.clear();
         for (VirtualFile addFile:
-             curOpenFiles) {
+                curOpenFiles) {
             openFilesData.add(new DataOfOpenFiles(addFile));
         }
         openFilesTable.setItems(openFilesData);
     }
-    private void intDiskPane() {
+    private void intDiskPane() throws IOException {
         double testwidth;
         fat = new int[128];
         fat[0] = -1; fat[1] = -1;
@@ -264,9 +274,9 @@ public class Controller {
         pieChart.getData().add(used);
         pieChart.getData().add(unused);
 
-        updateFat();
+        server.updateFat();
     }
-    public void updateFat(){
+    public void updateFat(int[] fat){
 
         /*以下为刷新fat表*/
         for (int i = 0 ; i < 32 ; i++ ){
@@ -277,7 +287,7 @@ public class Controller {
         }
         int numOfused = 0;
         for (int curVal :
-             fat) {
+                fat) {
             if (curVal == -1)
                 numOfused++;
         }
@@ -327,13 +337,12 @@ public class Controller {
 
     @FXML//事件监听器
     public void onButtonClick(ActionEvent event){
-        System.out.println(77777);
     }
 
     @FXML
     public void panePress(MouseEvent mouseEvent) {
     }
-    
+
 /*    @FXML
     public void paneSecondary(MouseEvent mouseEvent) {
         if(mouseEvent.getButton()==MouseButton.SECONDARY) {
@@ -341,25 +350,38 @@ public class Controller {
         	updateFilePane();
         }
     }*/
-    
+
+    public void updatePaneStyle(MouseEvent event){
+
+        if (curClickedCom!=null){
+            if(curClickedCom.isClickedflag){
+                curClickedCom.isClickedflag = false;
+            }else {
+                curClickedCom.turnWhite();
+                curClickedCom = null;
+            }
+        }
+
+    }
+
     @FXML
     public void onButtonClickTwice(MouseEvent event) {
-    	if(event.getClickCount() == 2) {
-    		System.out.println("双击进入文件（夹）");
-    	}
+        if(event.getClickCount() == 2) {
+            System.out.println("双击进入文件（夹）");
+        }
     }
-    
-    @FXML 
+
+    @FXML
     public void onButtonSecondary(MouseEvent event) {
-    	if(event.getButton()==MouseButton.SECONDARY) {
-    		System.out.println("右键点击文件（夹）");
-    	}
+        if(event.getButton()==MouseButton.SECONDARY) {
+            System.out.println("右键点击文件（夹）");
+        }
     }
 
     public void formattingDisk(ActionEvent event) throws IOException {
         /* 格式化磁盘，用于测试
-        *  可以在菜单栏 -> Help -> format中直接调用
-        * */
+         *  可以在菜单栏 -> Help -> format中直接调用
+         * */
         server.formatting();
         System.out.println("format!!!!");
     }
@@ -369,4 +391,5 @@ public class Controller {
     public void findNextBlock(ActionEvent event) throws IOException {
         System.out.println("next block is " + server.findNextFreeBlock());
     }
+
 }

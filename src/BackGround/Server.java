@@ -367,7 +367,7 @@ public class Server {
 
 
     }
-    public void delFile(VirtualFile file){
+    public void delFile(VirtualFile file) throws IOException {
         /*
          * 这个方法和delCat结构是差不多的，可以互相参照
          * 1. 获取父录file.getCatalogue()
@@ -376,8 +376,40 @@ public class Server {
          * 3. 获取起始盘块号码file.getFirstBlock()
          * 4. 将fat表对应的val置0（表示该盘块空闲）
          * */
+        /*
+         * 这个方法和delCat结构是差不多的，可以互相参照
+         * 1. 获取父录file.getCatalogue()
+         * 2. 获取父目录在diskFile的信息删除对应的目录项
+         * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
+         * 3. 获取起始盘块号码file.getFirstBlock()
+         * 4. 将fat表对应的val置0（表示该盘块空闲）
+         * */
+        Catalogue parfile = file.getCatalogue();
+        //获取父目录
+        byte[] parfileInfo = readBlock(parfile.getFirstBlock());
+        //获取父目录在diskFile的信息
+
+        for (int i = 0; i < 8; i++) {
+            byte [] entryBytes = new byte[8];
+            for (int j = 0; j < 8; j++) {
+                entryBytes[j] = parfileInfo[i*8+j];
+            }//获取单个目录项
+            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            //获取当前文件的名字
+
+            if (curCatName.equals(file.getName())){
+                //如果当前目录项匹配到需要del的文件
+                removeEntry(parfile,i);
+                //移除匹配到的目录项
+            }else {
+                //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
+            }
+        }
+        fatTable[file.getFirstBlock()] = 0;
+        updateFat();
+        //获取起始盘块号
     }
-    public void changeFileATTR (VirtualFile file){
+    public void changeFileATTR (VirtualFile file) throws IOException {
         /* 这个方法需要与saveFile区分开，一个是修改文件的内容，一个是修改文件的属性
          * 同理这个方法和changeCat结构是差不多的，可以互相参照
          *
@@ -387,6 +419,39 @@ public class Server {
          * 实现方法2：先依旧按更该文件名的功能来做，后续可能有更多的需求
          * 所以找到对应的目录项，将对应的目录名字的部分修改即可
          * */
+        /* 这个方法需要与saveFile区分开，一个是修改文件的内容，一个是修改文件的属性
+         * 同理这个方法和changeCat结构是差不多的，可以互相参照
+         *
+         * 实现方法1：直接先调用一次 delFile，再调用一次addFile
+         *（还需要更新file的firstBlock）
+         *
+         * 实现方法2：先依旧按更该文件名的功能来做，后续可能有更多的需求
+         * 所以找到对应的目录项，将对应的目录名字的部分修改即可
+         * */
+        Catalogue parfile = file.getCatalogue();
+        //获取父目录
+        byte[] parfileInfo = readBlock(parfile.getFirstBlock());
+        //获取父目录在diskFile的信息
+
+        for (int i = 0; i < 8; i++) {
+            byte [] entryBytes = new byte[8];
+            for (int j = 0; j < 8; j++) {
+                entryBytes[j] = parfileInfo[i*8+j];
+            }//获取单个目录项
+            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            //获取当前文件的名字
+
+            if (curCatName.equals(file.getName())){
+                //如果当前目录项匹配到需要del的文件
+                removeEntry(parfile,i);
+                //移除匹配到的目录项
+            }else {
+                //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
+            }
+        }
+        VirtualFile newfile = new VirtualFile();
+        addFile(newfile);
+        //先删除文件 后新建文件  更新一次fat表 意思是先删掉这个文件  然后再用addFile（）新建
     }
 
     public int saveFile(VirtualFile file) throws IOException {
@@ -586,9 +651,10 @@ public class Server {
         return ADD_SUCESS;
     }
     public void updateFat() throws IOException {
-        /*将 ！已经修改好！ 的fat表更新到diskFile中*/
+        /*将 ！已经修改好！ 的fat表更新到diskFile中,并且更新展示主程序的*/
         RandomAccessFile raf = new RandomAccessFile(new File(DISK_FILE_PATH),"rw");
         byte[] wirteBuf = new byte[128];
+        controller.updateFat(fatTable);
         for (int i = 0; i < 128; i++) {
             wirteBuf[i] = (byte) fatTable[i];
         }

@@ -61,7 +61,7 @@
                         <content>
                           <AnchorPane minHeight="0.0" minWidth="0.0" onMousePressed="#panePress" prefHeight="180.0" prefWidth="200.0" styleClass="cur_catalogue">
                                  <children>
-                                    <FlowPane fx:id="filePane" layoutX="274.0" layoutY="7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                    <FlowPane fx:id="filePane" layoutX="274.0" layoutY="7.0" onMouseClicked="#updatePaneStyle" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                                        <children>
                                           <Button fx:id="parentCat" mnemonicParsing="false" onAction="#onButtonClick" onMouseClicked="#onButtonClickTwice" />
                                        </children>

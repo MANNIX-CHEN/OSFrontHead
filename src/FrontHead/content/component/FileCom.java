@@ -19,7 +19,6 @@ public class FileCom extends FilePaneCom {
     VirtualFile file ;
     protected MenuItem openFile,delFile,fileData,renameFile;
     protected ContextMenu fileContextMenu2;
-    protected Controller controller;
     public FileCom(String name , VirtualFile file , Controller controller) {
         super(name , controller);
         setFile(file);
@@ -31,16 +30,7 @@ public class FileCom extends FilePaneCom {
     	renameFile = new MenuItem("重命名");
     	fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
 
-    	addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
-    		if (event.getButton() == MouseButton.SECONDARY) {
-    			controller.contextFlag=false;
-    			fileContextMenu2.show(img, event.getScreenX(), event.getScreenY());
-			}
-			else {
-				fileContextMenu2.hide();
-			}
-
-		});
+    	initListener();
 
     	openFile.setOnAction(ActionEvent -> {
 			System.out.println("打开文件");
@@ -67,6 +57,30 @@ public class FileCom extends FilePaneCom {
 		});
 
     }
+    public void initListener(){
+    	img.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
+			if (event.getButton() == MouseButton.SECONDARY) {
+				controller.contextFlag=false;
+				fileContextMenu2.show(img, event.getScreenX(), event.getScreenY());
+			}
+			else {
+				fileContextMenu2.hide();
+			}
+			controller.updatePaneStyle(event);
+
+		});
+
+		addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
+			if (event.getButton() == MouseButton.SECONDARY) {
+				controller.contextFlag=false;
+				fileContextMenu2.show(img, event.getScreenX(), event.getScreenY());
+			}
+			else {
+				fileContextMenu2.hide();
+			}
+
+		});
+	}
 
     @Override
     public void setImg() {
