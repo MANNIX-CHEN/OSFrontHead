@@ -2,8 +2,8 @@ package FrontHead.content.component;
 
 import java.util.Optional;
 
+import FrontHead.content.File;
 import FrontHead.content.FileTextPane;
-import FrontHead.content.VirtualFile;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
@@ -16,56 +16,56 @@ import javafx.stage.Stage;
 import sample.Controller;
 
 public class FileCom extends FilePaneCom {
-    VirtualFile file ;
+    File file ;
     protected MenuItem openFile,delFile,fileData,renameFile;
     protected ContextMenu fileContextMenu2;
     protected Controller controller;
-    public FileCom(String name , VirtualFile file , Controller controller) {
+    public FileCom(String name , File file ,Controller controller) {
         super(name , controller);
         setFile(file);
-
+        
         fileContextMenu2=new ContextMenu();
-    	openFile = new MenuItem("æ‰“å¼€");
-    	delFile = new MenuItem("åˆ é™¤");
-    	fileData = new MenuItem("å±æ€§");
-    	renameFile = new MenuItem("é‡å‘½å");
+    	openFile = new MenuItem("´ò¿ª");
+    	delFile = new MenuItem("É¾³ı");
+    	fileData = new MenuItem("ÊôĞÔ");
+    	renameFile = new MenuItem("ÖØÃüÃû");
     	fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
-
+    	    	
     	addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
     		if (event.getButton() == MouseButton.SECONDARY) {
     			controller.contextFlag=false;
-    			fileContextMenu2.show(img, event.getScreenX(), event.getScreenY());
-			}
+    			fileContextMenu2.show(img, event.getScreenX(), event.getScreenY());				
+			} 
 			else {
 				fileContextMenu2.hide();
 			}
-
+    		
 		});
-
+    	
     	openFile.setOnAction(ActionEvent -> {
-			System.out.println("æ‰“å¼€æ–‡ä»¶");
+			System.out.println("´ò¿ªÎÄ¼ş");
 		});
-
+    	
     	delFile.setOnAction(ActionEvent -> {
-			System.out.println("åˆ é™¤æ–‡ä»¶");
+			System.out.println("É¾³ıÎÄ¼ş");
 		});
-
+    	
     	renameFile.setOnAction(ActionEvent -> {
-			System.out.println("é‡å‘½åæ–‡ä»¶");
+			System.out.println("ÖØÃüÃûÎÄ¼ş");
 			TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("é‡å‘½åæ–‡ä»¶");
-    		dialog.setHeaderText("é‡å‘½åæ–‡ä»¶");
-    		dialog.setContentText("è¯·è¾“å…¥æ–°æ–‡ä»¶å:");
+    		dialog.setTitle("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setHeaderText("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setContentText("ÇëÊäÈëĞÂÎÄ¼şÃû:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
-    			System.out.println("æ–°æ–‡ä»¶åä¸ºï¼š"+result.get());
+    			System.out.println("ĞÂÎÄ¼şÃûÎª£º"+result.get());
     		}
 		});
-
+    	
     	fileData.setOnAction(ActionEvent -> {
-			System.out.println("æ–‡ä»¶å±æ€§");
+			System.out.println("ÎÄ¼şÊôĞÔ");
 		});
-
+    	
     }
 
     @Override
@@ -75,11 +75,10 @@ public class FileCom extends FilePaneCom {
 
     @Override
     public void mouseClickedTiwce() throws Exception {
-        controller.openFile(file);
-        new FileTextPane(file , controller , controller.getServer()).init();
+        new FileTextPane(file).init();
     }
 
-    public void setFile(VirtualFile file) {
+    public void setFile(File file) {
         this.file = file;
     }
 }

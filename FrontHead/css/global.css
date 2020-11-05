@@ -1,0 +1,13 @@
+.main_pane_width{
+    -fx-pref-width: 1024;
+}
+.main_pane_height{
+    -fx-pref-height: 600;
+}
+.global_font{
+    -fx-font-size: 16px;
+}
+.mainpane{
+    -fx-pref-width: "main_pane_width";
+}
+

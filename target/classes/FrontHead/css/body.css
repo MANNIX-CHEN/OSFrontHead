@@ -5,6 +5,18 @@
 .test_red_back{
     -fx-background-color: red;
 }
+
+.test_blue_back{
+    -fx-background-color: #f0f8ff;
+}
+
+.test_white_back{
+    -fx-background-color: #FFFFFF;
+}
+
+.test_deepblue_back{
+    -fx-background-color: #1e90ff;
+}
 .cur_catalogue{
     /*-fx-background-color: green;*/
 }
@@ -33,7 +45,7 @@
 .imgBtn{
     -fx-pref-width: 64;
     -fx-pref-height: 64;
-    -fx-background-color: blue;
+    -fx-background-color: white;
 }
 .catImg{
     -fx-background-image:url("../UI/folder.png");
