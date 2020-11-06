@@ -71,11 +71,14 @@ public class Catalogue implements CatEntry{
     public void delCatEntry(Catalogue childrenCat) throws IOException {
 
 
-        for (int i = 0; i < entries.size(); i++) {
-            if (entries.get(i).toString().matches("(.*)Catalogue(.*)")){
-                childrenCat.delCatEntry((Catalogue) entries.get(i));
+
+
+        int childEntriesNum  =childrenCat.entries.size();
+        for (int i = 0; i < childEntriesNum; i++) {
+            if (childrenCat.entries.get(0).toString().matches("(.*)Catalogue(.*)")){
+                childrenCat.delCatEntry((Catalogue) childrenCat.entries.get(0));
             }else {
-                childrenCat.delFileEntry((VirtualFile) entries.get(i));
+                childrenCat.delFileEntry((VirtualFile) childrenCat.entries.get(0));
             }
         }//使用foreach会报错
 
@@ -85,7 +88,6 @@ public class Catalogue implements CatEntry{
             entries.remove(childrenCat);
         catItems.remove(childrenCat.getFxTreeItem());
         updateTreeView();
-
         //逻辑层
 
         server.delCat(childrenCat);
@@ -153,6 +155,11 @@ public class Catalogue implements CatEntry{
         server.changeCat(this);
     }
 
+    public void clearTreeView(){
+        this.getFxTreeItem().getChildren().clear();
+        this.catItems.clear();
+        this.fileItems.clear();
+    }
     public void updateTreeView() {
         this.getFxTreeItem().getChildren().clear();
         for (TreeItem addItem:

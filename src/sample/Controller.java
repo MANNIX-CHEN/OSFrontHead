@@ -113,7 +113,7 @@ public class Controller {
         server = new Server(this);
 
 
-        server.formatting();
+        //server.formatting();
         initContextMenu();//初始化右键下拉菜单
         setOnActionMenuItem();//下拉菜单功能实现
         initcatalogue();//初始化目录结构
@@ -155,58 +155,68 @@ public class Controller {
 //        });
     }
 
+
+    public void addFile(){
+        //System.out.println("新建文件");
+        TextInputDialog dialog=new TextInputDialog();
+        dialog.setTitle("新建文件");
+        dialog.setHeaderText("新建文件");
+        dialog.setContentText("请输入文件名:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()&& check(result.get())){
+            try {
+                curCat.addFileEntry(new VirtualFile(result.get(),curCat,curCat.getAbsPath(),curCat.getServer()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            updateFilePane();
+        }else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.titleProperty().set("新建文件失败");
+            alert.headerTextProperty().set("注意事项：\n" +
+                    "1. 文件名长度最多为3\n" +
+                    "2. 文件名不能含有\"$\",\".\",\"\\\"字符\n" +
+                    "3. 文件名以及文件夹名之间不能重复\n" +
+                    "4. 当前目录的文件以及文件夹总数最大为8\n" +
+                    "5. 检查磁盘空间是否写满");
+            alert.showAndWait();
+        }
+    }
+    public void addFloder(){
+        //System.out.println("新建文件夹");
+        TextInputDialog dialog=new TextInputDialog();
+        dialog.setTitle("新建文件夹");
+        dialog.setHeaderText("新建文件夹");
+        dialog.setContentText("请输入文件夹名:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()&& check(result.get())){ //新建文件夹事件
+            try {
+                curCat.addCatEntry(new Catalogue(result.get(),curCat));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            updateFilePane();//添加目录后更新界面
+        }else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.titleProperty().set("新建文件夹失败");
+            alert.headerTextProperty().set("注意事项：\n" +
+                    "1. 文件夹名长度最多为3\n" +
+                    "2. 文件夹名不能含有\"$\",\".\",\"\\\"字符\n" +
+                    "3. 文件名以及文件夹名之间不能重复\n" +
+                    "4. 当前目录的文件以及文件夹总数最大为8\n" +
+                    "5. 检查磁盘空间是否写满");
+            alert.showAndWait();
+        }
+    }
     /*下拉菜单功能实现*/
     public void setOnActionMenuItem() {
         newFile.setOnAction(ActionEvent -> {
-            //System.out.println("新建文件");
-            TextInputDialog dialog=new TextInputDialog();
-            dialog.setTitle("新建文件");
-            dialog.setHeaderText("新建文件");
-            dialog.setContentText("请输入文件名:");
-            Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()&& check(result.get())){
-                try {
-                    curCat.addFileEntry(new VirtualFile(result.get(),curCat,curCat.getAbsPath(),curCat.getServer()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                updateFilePane();
-            }else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.titleProperty().set("新建文件失败");
-                alert.headerTextProperty().set("注意事项：\n" +
-                        "1. 文件名长度最多为3\n" +
-                        "2. 文件名不能含有\"$\",\".\",\"\\\"字符\n" +
-                        "3. 文件名以及文件夹名之间不能重复\n" +
-                        "4. 当前目录的文件以及文件夹总数最大为8");
-                alert.showAndWait();
-            }
+            addFile();
         });
 
         newFolder.setOnAction(ActionEvent -> {
-            //System.out.println("新建文件夹");
-            TextInputDialog dialog=new TextInputDialog();
-            dialog.setTitle("新建文件夹");
-            dialog.setHeaderText("新建文件夹");
-            dialog.setContentText("请输入文件夹名:");
-            Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()&& check(result.get())){ //新建文件夹事件
-                try {
-                    curCat.addCatEntry(new Catalogue(result.get(),curCat));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                updateFilePane();//添加目录后更新界面
-            }else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.titleProperty().set("新建文件夹失败");
-                alert.headerTextProperty().set("注意事项：\n" +
-                        "1. 文件夹名长度最多为3\n" +
-                        "2. 文件夹名不能含有\"$\",\".\",\"\\\"字符\n" +
-                        "3. 文件名以及文件夹名之间不能重复\n" +
-                        "4. 当前目录的文件以及文件夹总数最大为8");
-                alert.showAndWait();
-            }
+            addFloder();
+
         });
     }
 
@@ -228,7 +238,7 @@ public class Controller {
         Matcher mSlash = Pattern.compile("(\\\\)+").matcher(s);
         //是否合法
         if(mDoller.find() || mDot.find() || mSlash.find()
-                 || s.length()>3){
+                 || s.length()>3 ||server.findNextFreeBlock()!=-1){
             return false;
         }
 
@@ -435,10 +445,8 @@ public class Controller {
         rootCat.getEntries().clear();
         setCurCat(rootCat);
         updateFilePane();
-        rootCat.getFxTreeItem().getChildren().clear();
-
+        rootCat.clearTreeView();
         server.formatting();
-        System.out.println("format!!!!");
     }
     public void showMeFat(ActionEvent event) throws IOException {
         server.showMeFat();
@@ -447,4 +455,12 @@ public class Controller {
         System.out.println("next block is " + server.findNextFreeBlock());
     }
 
+    public void showAboutDialog(ActionEvent event){
+
+        Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
+        aboutDialog.setTitle("ABOUT");
+        aboutDialog.setHeaderText(null);
+        aboutDialog.setContentText("使用方法：");
+        aboutDialog.showAndWait();
+    }
 }

@@ -279,7 +279,9 @@ public class Server {
         Catalogue parent = catalogue.getParent();
         //获取父目录
 
-        byte[] parentInfo = readBlock(parent.getFirstBlock());
+        int firstBlock = catalogue.getFirstBlock();
+
+        byte[] parentInfo = readBlock(catalogue.getParent().getFirstBlock());
         //获取父目录在diskFile信息
 
 
@@ -288,10 +290,10 @@ public class Server {
             for (int j = 0; j < 8; j++) {
                 entryBytes[j] = parentInfo[i*8+j];
             }//获取单个目录项
-            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            Map<String,byte[]> ce = decodeCatEntry(entryBytes);
             //获取当前目录项的名字
 
-            if (curCatName.equals(catalogue.getName())){
+            if (ce.get("firstBlock")[0] == firstBlock){
                 //如果当前目录项匹配到需要del的目录
                 removeEntry(parent,i);
                 //移除匹配到的目录项
@@ -300,7 +302,7 @@ public class Server {
             }
         }
 
-        fatTable[catalogue.getFirstBlock()] = 0;
+        fatTable[firstBlock] = 0;
         updateFat();
         //获取起始盘块号
 
@@ -453,33 +455,37 @@ public class Server {
 
         int termBlock = fatTable[curBlock];
         while (termBlock!=-1){
-            int x = fatTable[termBlock];
+            int nextBlock = fatTable[termBlock];
             fatTable[termBlock] = 0;
-            termBlock = x;
-        }//将磁盘块先释放
+            termBlock = nextBlock;
+        }//先释放原来的盘块
 
         int textNum = 0;//第几个text剪切段，因为存在缓冲区，text可能要分多次写入磁盘
 
         writeBuffer = new byte[64];
+        int iwrite = 0;
         while(needBlock > 0) {
+
             rdf.seek((long)curBlock*64);
             if(textNum >= text.length()/64 ) {
                 //写入最后一个剪切段
                 for (int i = 0; i < 64; i++) {
                     writeBuffer[i] = (textNum*64+i<text.length())?
-                            (text.substring(textNum*64).getBytes()[i]):(0);
+                            (text.substring(textNum*64).getBytes()[i]) : (0);
                     fatTable[curBlock] = -1;
                     updateFat();
                 }
             }else {
+
                 //写入整整64个剪切段
                 writeBuffer = text.substring(textNum*64, textNum*64+64).getBytes();
                 textNum++;
                 fatTable[curBlock] = findNextFreeBlock();
+                curBlock = fatTable[curBlock];
+                fatTable[curBlock] = -1 ;
                 updateFat();
             }
             rdf.write(writeBuffer);
-            curBlock = findNextFreeBlock();
             needBlock--;
 
         }
@@ -565,6 +571,7 @@ public class Server {
         /*格式化磁盘，用于测试*/
         new File(DISK_FILE_PATH).delete();
         init();
+        updateFat();
     }
 
     public void showMeFat(){
