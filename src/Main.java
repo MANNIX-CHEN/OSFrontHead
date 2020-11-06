@@ -17,13 +17,13 @@ public class Main extends Application {
         URL location = getClass().getResource("sample/sample.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(location);
-        fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());//ä¸èƒ½ä½¿ç”¨é™æ€è¯»å–æ–¹æ³•
+        fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());//²»ÄÜÊ¹ÓÃ¾²Ì¬¶ÁÈ¡·½·¨
         Parent root = fxmlLoader.load();
-        primaryStage.setTitle("æ–‡ä»¶ç®¡ç†ç³»ç»Ÿ");
+        primaryStage.setTitle("ÎÄ¼ş¹ÜÀíÏµÍ³");
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
 
-        Controller controller = fxmlLoader.getController();//è·å–Controllerå®ä¾‹å¯¹è±¡
+        Controller controller = fxmlLoader.getController();//»ñÈ¡ControllerÊµÀı¶ÔÏó
         controller.Init();
         primaryStage.show();
     }

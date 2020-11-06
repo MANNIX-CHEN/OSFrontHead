@@ -29,12 +29,14 @@ import javafx.scene.layout.GridPane;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.text.html.ImageView;
 
 public class Controller {
 
-    /*ä»¥ä¸‹æˆå‘˜åˆ†åˆ«å®šä¹‰å¯¹åº”çš„FXMLä¸­çš„ç»„ä»¶*/
+    /*ÒÔÏÂ³ÉÔ±·Ö±ğ¶¨Òå¶ÔÓ¦µÄFXMLÖĞµÄ×é¼ş*/
     @FXML
     private Button parentCat;
     @FXML
@@ -63,18 +65,17 @@ public class Controller {
     Server server;
 
 
-    /*ä»¥ä¸‹ä¸ºæ¸²æŸ“ç¨‹åºéœ€è¦ä½¿ç”¨åˆ°çš„ç›¸å…³æˆå‘˜*/
+    /*ÒÔÏÂÎªäÖÈ¾³ÌĞòĞèÒªÊ¹ÓÃµ½µÄÏà¹Ø³ÉÔ±*/
     private Catalogue rootCat ;
-    private Catalogue curCat ;//å½“å‰ç›®å½•
+    private Catalogue curCat ;//µ±Ç°Ä¿Â¼
     FilePaneCom[] curFPaneComs;
     Vector<VirtualFile> curOpenFiles;
     private FilePaneCom curClickedCom ;
-    int[] fat;
 
     public boolean contextFlag =false;
 
 
-    /*ä»¥ä¸‹ä¸ºå·²ç»æ‰“å¼€æ–‡ä»¶è¡¨æ ¼dataï¼ˆéœ€è¦ä¸å¯¹åº”çš„çš„tableåŒºåˆ«å¼€ï¼‰*/
+    /*ÒÔÏÂÎªÒÑ¾­´ò¿ªÎÄ¼ş±í¸ñdata£¨ĞèÒªÓë¶ÔÓ¦µÄµÄtableÇø±ğ¿ª£©*/
     private ObservableList<DataOfOpenFiles> openFilesData = FXCollections.observableArrayList();
     private ObservableList<DataOfFat> fatData = FXCollections.observableArrayList();
 
@@ -108,21 +109,24 @@ public class Controller {
     }
 
     public void Init() throws IOException {
+
         server = new Server(this);
 
-        initContextMenu();//åˆå§‹åŒ–å³é”®ä¸‹æ‹‰èœå•
-        setOnActionMenuItem();//ä¸‹æ‹‰èœå•åŠŸèƒ½å®ç°
-        initcatalogue();//åˆå§‹åŒ–ç›®å½•ç»“æ„
-        initOpenFilesTable();//åˆå§‹åŒ–è¡¨æ ¼,åˆå§‹åŒ–curOpenFiles
-        updateFilePane();//åˆå§‹åˆ·æ–° FilePane
-        intDiskPane();//åˆå§‹åŒ–ç£ç›˜åˆ†é…æƒ…å†µé¡µé¢
+
+        server.formatting();
+        initContextMenu();//³õÊ¼»¯ÓÒ¼üÏÂÀ­²Ëµ¥
+        setOnActionMenuItem();//ÏÂÀ­²Ëµ¥¹¦ÄÜÊµÏÖ
+        initcatalogue();//³õÊ¼»¯Ä¿Â¼½á¹¹
+        initOpenFilesTable();//³õÊ¼»¯±í¸ñ,³õÊ¼»¯curOpenFiles
+        updateFilePane();//³õÊ¼Ë¢ĞÂ FilePane
+        intDiskPane();//³õÊ¼»¯´ÅÅÌ·ÖÅäÇé¿öÒ³Ãæ
 
     }
 
     public void initContextMenu() {
         fileContextMenu=new ContextMenu();
-        newFile = new MenuItem("æ–°å»ºæ–‡ä»¶");
-        newFolder = new MenuItem("æ–°å»ºæ–‡ä»¶å¤¹");
+        newFile = new MenuItem("ĞÂ½¨ÎÄ¼ş");
+        newFolder = new MenuItem("ĞÂ½¨ÎÄ¼ş¼Ğ");
         fileContextMenu.getItems().addAll(newFile,newFolder);
         filePane.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 
@@ -134,12 +138,12 @@ public class Controller {
             }
         });
 
-        /*æ–‡ä»¶å³é”®èœå•*/
+        /*ÎÄ¼şÓÒ¼ü²Ëµ¥*/
         fileContextMenu2=new ContextMenu();
-        openFile = new MenuItem("æ‰“å¼€");
-        delFile = new MenuItem("åˆ é™¤");
-        fileData = new MenuItem("å±æ€§");
-        renameFile = new MenuItem("é‡å‘½å");
+        openFile = new MenuItem("´ò¿ª");
+        delFile = new MenuItem("É¾³ı");
+        fileData = new MenuItem("ÊôĞÔ");
+        renameFile = new MenuItem("ÖØÃüÃû");
         fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
 //        parentCat.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 //
@@ -151,49 +155,93 @@ public class Controller {
 //        });
     }
 
-    /*ä¸‹æ‹‰èœå•åŠŸèƒ½å®ç°*/
+    /*ÏÂÀ­²Ëµ¥¹¦ÄÜÊµÏÖ*/
     public void setOnActionMenuItem() {
         newFile.setOnAction(ActionEvent -> {
-            //System.out.println("æ–°å»ºæ–‡ä»¶");
+            //System.out.println("ĞÂ½¨ÎÄ¼ş");
             TextInputDialog dialog=new TextInputDialog();
-            dialog.setTitle("æ–°å»ºæ–‡ä»¶");
-            dialog.setHeaderText("æ–°å»ºæ–‡ä»¶");
-            dialog.setContentText("è¯·è¾“å…¥æ–‡ä»¶å:");
+            dialog.setTitle("ĞÂ½¨ÎÄ¼ş");
+            dialog.setHeaderText("ĞÂ½¨ÎÄ¼ş");
+            dialog.setContentText("ÇëÊäÈëÎÄ¼şÃû:");
             Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()){
+            if (result.isPresent()&& check(result.get())){
                 try {
                     curCat.addFileEntry(new VirtualFile(result.get(),curCat,curCat.getAbsPath(),curCat.getServer()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 updateFilePane();
+            }else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.titleProperty().set("ĞÂ½¨ÎÄ¼şÊ§°Ü");
+                alert.headerTextProperty().set("×¢ÒâÊÂÏî£º\n" +
+                        "1. ÎÄ¼şÃû³¤¶È×î¶àÎª3\n" +
+                        "2. ÎÄ¼şÃû²»ÄÜº¬ÓĞ\"$\",\".\",\"\\\"×Ö·û\n" +
+                        "3. ÎÄ¼şÃûÒÔ¼°ÎÄ¼ş¼ĞÃûÖ®¼ä²»ÄÜÖØ¸´\n" +
+                        "4. µ±Ç°Ä¿Â¼µÄÎÄ¼şÒÔ¼°ÎÄ¼ş¼Ğ×ÜÊı×î´óÎª8");
+                alert.showAndWait();
             }
         });
 
         newFolder.setOnAction(ActionEvent -> {
-            //System.out.println("æ–°å»ºæ–‡ä»¶å¤¹");
+            //System.out.println("ĞÂ½¨ÎÄ¼ş¼Ğ");
             TextInputDialog dialog=new TextInputDialog();
-            dialog.setTitle("æ–°å»ºæ–‡ä»¶å¤¹");
-            dialog.setHeaderText("æ–°å»ºæ–‡ä»¶å¤¹");
-            dialog.setContentText("è¯·è¾“å…¥æ–‡ä»¶å¤¹å:");
+            dialog.setTitle("ĞÂ½¨ÎÄ¼ş¼Ğ");
+            dialog.setHeaderText("ĞÂ½¨ÎÄ¼ş¼Ğ");
+            dialog.setContentText("ÇëÊäÈëÎÄ¼ş¼ĞÃû:");
             Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()){ //æ–°å»ºæ–‡ä»¶å¤¹äº‹ä»¶
+            if (result.isPresent()&& check(result.get())){ //ĞÂ½¨ÎÄ¼ş¼ĞÊÂ¼ş
                 try {
                     curCat.addCatEntry(new Catalogue(result.get(),curCat));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                updateFilePane();//æ·»åŠ ç›®å½•åæ›´æ–°ç•Œé¢
+                updateFilePane();//Ìí¼ÓÄ¿Â¼ºó¸üĞÂ½çÃæ
+            }else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.titleProperty().set("ĞÂ½¨ÎÄ¼ş¼ĞÊ§°Ü");
+                alert.headerTextProperty().set("×¢ÒâÊÂÏî£º\n" +
+                        "1. ÎÄ¼ş¼ĞÃû³¤¶È×î¶àÎª3\n" +
+                        "2. ÎÄ¼ş¼ĞÃû²»ÄÜº¬ÓĞ\"$\",\".\",\"\\\"×Ö·û\n" +
+                        "3. ÎÄ¼şÃûÒÔ¼°ÎÄ¼ş¼ĞÃûÖ®¼ä²»ÄÜÖØ¸´\n" +
+                        "4. µ±Ç°Ä¿Â¼µÄÎÄ¼şÒÔ¼°ÎÄ¼ş¼Ğ×ÜÊı×î´óÎª8");
+                alert.showAndWait();
             }
         });
     }
 
+    private boolean check(String s) {
+        //Pattern pattern$ = Pattern.compile("(\\$)+") ;
+        if(curCat.getEntries().size() == 8)
+            return false;
+
+        for (CatEntry entry :
+                curCat.getEntries()) {
+            if (s.equals(entry.getName())) {
+                return false;
+            }
+        }
+
+
+        Matcher mDoller = Pattern.compile("(\\$)+").matcher(s);
+        Matcher mDot = Pattern.compile("(\\.)+").matcher(s);
+        Matcher mSlash = Pattern.compile("(\\\\)+").matcher(s);
+        //ÊÇ·ñºÏ·¨
+        if(mDoller.find() || mDot.find() || mSlash.find()
+                 || s.length()>3){
+            return false;
+        }
+
+
+        return true ;
+    }
+
 
     public void updateFilePane() {
-        /*æ›´æ–°filePaneï¼Œå…ˆclearæ‰€æœ‰ç»„ä»¶ï¼Œç„¶åæ ¹æ®curCatæ·»åŠ ç»„ä»¶
+        /*¸üĞÂfilePane£¬ÏÈclearËùÓĞ×é¼ş£¬È»ºó¸ù¾İcurCatÌí¼Ó×é¼ş
          * */
         curAbsPath.setText(curCat.getAbsPath());
-        filePane.getChildren().clear();//æ¸…ç©ºæ‰€æœ‰ç»„ä»¶
+        filePane.getChildren().clear();//Çå¿ÕËùÓĞ×é¼ş
 
         if ((curCat != rootCat)) {
             filePane.getChildren().add(new ParentCatCom("...", this));
@@ -201,11 +249,11 @@ public class Controller {
 
 
         Vector<CatEntry> curCatEntries  = curCat.getEntries();
-        /*ä¸¤ä¸ªforå¾ªç¯æ·»åŠ ç»„ä»¶ å…ˆæ–‡ä»¶å¤¹ï¼Œç„¶åå†æ–‡ä»¶*/
+        /*Á½¸öforÑ­»·Ìí¼Ó×é¼ş ÏÈÎÄ¼ş¼Ğ£¬È»ºóÔÙÎÄ¼ş*/
         for (CatEntry cat :
                 curCatEntries) {
             if (cat.toString().matches("(.*)Catalogue(.*)")){
-                //æ­£åˆ™è¡¨è¾¾å¼åŒ¹é… catalogue
+                //ÕıÔò±í´ïÊ½Æ¥Åä catalogue
                 CatCom addCom = new CatCom(cat.getName(), this, (Catalogue) cat);
                 filePane.getChildren().add(addCom);
             }
@@ -213,7 +261,7 @@ public class Controller {
         for (CatEntry file :
                 curCatEntries) {
             if (file.toString().matches("(.*)File(.*)")){
-                //æ­£åˆ™è¡¨è¾¾å¼åŒ¹é… File
+                //ÕıÔò±í´ïÊ½Æ¥Åä File
                 FileCom addCom = new FileCom(file.getName(), (VirtualFile) file,this);
                 filePane.getChildren().add(addCom);
             }
@@ -238,7 +286,7 @@ public class Controller {
         updateOpenFilesTable();
     }
 
-    private void updateOpenFilesTable() {
+    public void updateOpenFilesTable() {
         openFilesData.clear();
         for (VirtualFile addFile:
                 curOpenFiles) {
@@ -248,55 +296,57 @@ public class Controller {
     }
     private void intDiskPane() throws IOException {
         double testwidth;
-        fat = new int[128];
-        fat[0] = -1; fat[1] = -1;
 
-        /*ä»¥ä¸‹å†…å®¹åˆå§‹åŒ–fatè¡¨*/
+        /*ÒÔÏÂÄÚÈİ³õÊ¼»¯fat±í*/
         ObservableList<TableColumn<DataOfFat, ?>> observableList = fatTable.getColumns();
 
         for (int i = 0 ; i < 4 ; i++){
             TableColumn curBlockCol = observableList.get(2*i);
             TableColumn curValCol = observableList.get(2*i+1);
 
-            /*å—åˆ—*/
-            curBlockCol.setText("å—");
+            /*¿éÁĞ*/
+            curBlockCol.setText("¿é");
             curBlockCol.setCellValueFactory(new PropertyValueFactory("block"+i));
-            curBlockCol.getStyleClass().add("blockCol");//åŠ ä¸Šå·¦è¾¹ç•Œï¼ŒåŠ å¼ºè§‚æ„Ÿ
+            curBlockCol.getStyleClass().add("blockCol");//¼ÓÉÏ×ó±ß½ç£¬¼ÓÇ¿¹Û¸Ğ
 
-            /*å€¼åˆ—*/
-            curValCol.setText("å€¼");
+            /*ÖµÁĞ*/
+            curValCol.setText("Öµ");
             curValCol.setCellValueFactory(new PropertyValueFactory("val"+i));
-        }//åˆå§‹åŒ–fatTableçš„éœ€è¦ç”¨åˆ°çš„ä¸œè¥¿
+        }//³õÊ¼»¯fatTableµÄĞèÒªÓÃµ½µÄ¶«Î÷
 
-        /*ä»¥ä¸‹å†…å®¹ä¸ºåˆå§‹åŒ–é¥¼å›¾*/
-        PieChart.Data used = new PieChart.Data("used",12);
-        PieChart.Data unused = new PieChart.Data("unused",128-used.getPieValue());
-        pieChart.getData().add(used);
-        pieChart.getData().add(unused);
+        /*ÒÔÏÂÄÚÈİÎª³õÊ¼»¯±ıÍ¼*/
 
         server.updateFat();
     }
-    public void updateFat(int[] fat){
-
-        /*ä»¥ä¸‹ä¸ºåˆ·æ–°fatè¡¨*/
+    public void updateFatShow(int[] newFat){
+        /*ÒÔÏÂÎªË¢ĞÂfat±í*/
+        fatData.clear();
         for (int i = 0 ; i < 32 ; i++ ){
             fatData.add(new DataOfFat(
                     new int[]{4*i,4*i+1,4*i+2,4*i+3},
-                    new int[]{fat[4*i] , fat[4*i+1],
-                            fat[4*i+2] , fat[4*i+3] }));
+                    new int[]{newFat[4*i] , newFat[4*i+1],
+                            newFat[4*i+2] , newFat[4*i+3] }));
         }
+
         int numOfused = 0;
         for (int curVal :
-                fat) {
-            if (curVal == -1)
+                newFat) {
+            if (curVal != 0)
                 numOfused++;
         }
+
         fatTable.setItems(fatData);
 
-        /*ä»¥ä¸‹å†…å®¹ä¸ºåˆ·æ–°pieå›¾*/
-        PieChart.Data used = new PieChart.Data("used",numOfused);
-        pieChart.getData().set(0,used);
-        pieChart.getData().set(1,new PieChart.Data("unused",128-used.getPieValue()));
+        /*ÒÔÏÂÄÚÈİÎªË¢ĞÂpieÍ¼*/
+        if (pieChart.getData().size()!=0){
+            pieChart.getData().set(0,new PieChart.Data("used",numOfused));
+            pieChart.getData().set(1,new PieChart.Data("unused",128-numOfused));
+        }else {
+            pieChart.getData().add(0,new PieChart.Data("used",numOfused));
+            pieChart.getData().add(1,new PieChart.Data("unused",128-numOfused));
+        }
+
+
 
     }
 
@@ -321,21 +371,21 @@ public class Controller {
         observableList.get(2).setCellValueFactory(new PropertyValueFactory("firstBlock"));
         observableList.get(3).setCellValueFactory(new PropertyValueFactory("fileLength"));
         observableList.get(4).setCellValueFactory(new PropertyValueFactory("operateType"));
-        //è®¾å®šéœ€è¦æ·»åŠ çš„ä¿¡æ¯æ˜¯ä»€ä¹ˆ
+        //Éè¶¨ĞèÒªÌí¼ÓµÄĞÅÏ¢ÊÇÊ²Ã´
 
 
 //        for (String[] curFileInfo:
 //             rd.openFilesInfo) {
 //            openFilesData.add(new DataOfOpenFiles(curFileInfo));
 //        }
-//        //å°†éœ€è¦æ”¾åœ¨è¡¨æ ¼çš„ä¿¡æ¯æ”¾åœ¨dataé‡Œå¤´
+//        //½«ĞèÒª·ÅÔÚ±í¸ñµÄĞÅÏ¢·ÅÔÚdataÀïÍ·
 //
 //        openFilesTable.setItems(openFilesData);
-//        //setItemå°†dataçš„æ•°æ®æ”¾åˆ°è¡¨æ ¼ä¸­
+//        //setItem½«dataµÄÊı¾İ·Åµ½±í¸ñÖĞ
 
     }
 
-    @FXML//äº‹ä»¶ç›‘å¬å™¨
+    @FXML//ÊÂ¼ş¼àÌıÆ÷
     public void onButtonClick(ActionEvent event){
     }
 
@@ -346,7 +396,7 @@ public class Controller {
 /*    @FXML
     public void paneSecondary(MouseEvent mouseEvent) {
         if(mouseEvent.getButton()==MouseButton.SECONDARY) {
-        	System.out.println("å³é”®ç‚¹å‡»ç©ºç™½åœ°æ–¹");
+        	System.out.println("ÓÒ¼üµã»÷¿Õ°×µØ·½");
         	updateFilePane();
         }
     }*/
@@ -367,21 +417,26 @@ public class Controller {
     @FXML
     public void onButtonClickTwice(MouseEvent event) {
         if(event.getClickCount() == 2) {
-            System.out.println("åŒå‡»è¿›å…¥æ–‡ä»¶ï¼ˆå¤¹ï¼‰");
+            System.out.println("Ë«»÷½øÈëÎÄ¼ş£¨¼Ğ£©");
         }
     }
 
     @FXML
     public void onButtonSecondary(MouseEvent event) {
         if(event.getButton()==MouseButton.SECONDARY) {
-            System.out.println("å³é”®ç‚¹å‡»æ–‡ä»¶ï¼ˆå¤¹ï¼‰");
+            System.out.println("ÓÒ¼üµã»÷ÎÄ¼ş£¨¼Ğ£©");
         }
     }
 
     public void formattingDisk(ActionEvent event) throws IOException {
-        /* æ ¼å¼åŒ–ç£ç›˜ï¼Œç”¨äºæµ‹è¯•
-         *  å¯ä»¥åœ¨èœå•æ  -> Help -> formatä¸­ç›´æ¥è°ƒç”¨
+        /* ¸ñÊ½»¯´ÅÅÌ£¬ÓÃÓÚ²âÊÔ
+         *  ¿ÉÒÔÔÚ²Ëµ¥À¸ -> Help -> formatÖĞÖ±½Óµ÷ÓÃ
          * */
+        rootCat.getEntries().clear();
+        setCurCat(rootCat);
+        updateFilePane();
+        rootCat.getFxTreeItem().getChildren().clear();
+
         server.formatting();
         System.out.println("format!!!!");
     }

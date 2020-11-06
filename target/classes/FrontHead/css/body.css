@@ -21,7 +21,7 @@
     /*-fx-background-color: green;*/
 }
 .cur_disc_distribution{
-    //-fx-background-color: blue;
+//-fx-background-color: blue;
 }
 .leftbodyWidth{
     -fx-pref-width: 200;
@@ -36,6 +36,7 @@
     -fx-border-width:1;
     -fx-border-color:black;
 }
+
 .body_background{
     -fx-background-color: white;
 }
@@ -45,7 +46,6 @@
 .imgBtn{
     -fx-pref-width: 64;
     -fx-pref-height: 64;
-    -fx-background-color: white;
 }
 .catImg{
     -fx-background-image:url("../UI/folder.png");
@@ -67,7 +67,9 @@
 
 
 }
-
+.nor_col{
+    -fx-pref-width: 30;
+}
 
 .blockCol{
     -fx-border-width: 0 1 0 1;
@@ -77,7 +79,7 @@
     -fx-border-width:  0 1 0 0;
     -fx-border-color: white  black white white;
 }
-.fatCol{
+.fat_col{
     -fx-pref-width: 47.5;
 }
 .cat_tree_item{

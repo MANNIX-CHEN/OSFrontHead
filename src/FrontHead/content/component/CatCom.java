@@ -25,11 +25,10 @@ public class CatCom extends FilePaneCom {
         setCatalogue(catalogue);
 
         fileContextMenu2=new ContextMenu();
-    	intoFile = new MenuItem("è¿›å…¥");
-    	delFile = new MenuItem("åˆ é™¤");
-    	fileData = new MenuItem("å±æ€§");
-    	renameFile = new MenuItem("é‡å‘½å");
-    	fileContextMenu2.getItems().addAll(intoFile,delFile,fileData,renameFile);
+    	intoFile = new MenuItem("½øÈë");
+    	delFile = new MenuItem("É¾³ı");
+    	renameFile = new MenuItem("ÖØÃüÃû");
+    	fileContextMenu2.getItems().addAll(intoFile,delFile,renameFile);
 
     	addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
     		if (event.getButton() == MouseButton.SECONDARY) {
@@ -43,32 +42,36 @@ public class CatCom extends FilePaneCom {
 		});
 
     	intoFile.setOnAction(ActionEvent -> {
-			System.out.println("è¿›å…¥æ–‡ä»¶å¤¹");
-
+			enter();
 		});
 
     	delFile.setOnAction(ActionEvent -> {
-			System.out.println("åˆ é™¤æ–‡ä»¶å¤¹");
+			try {
+				catalogue.getParent().delCatEntry(catalogue);
+				controller.updateFilePane();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
 		});
 
     	renameFile.setOnAction(ActionEvent -> {
-			System.out.println("é‡å‘½åæ–‡ä»¶å¤¹");
-			System.out.println("é‡å‘½åæ–‡ä»¶");
 			TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("é‡å‘½åæ–‡ä»¶");
-    		dialog.setHeaderText("é‡å‘½åæ–‡ä»¶");
-    		dialog.setContentText("è¯·è¾“å…¥æ–°æ–‡ä»¶å:");
+    		dialog.setTitle("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setHeaderText("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setContentText("ÇëÊäÈëĞÂÎÄ¼şÃû:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
-    			System.out.println("æ–°æ–‡ä»¶å¤¹åä¸ºï¼š"+result.get());
-    		}
+    			//System.out.println("ĞÂÎÄ¼ş¼ĞÃûÎª£º"+result.get());
+				try {
+					catalogue.changeName(result.get());
+					controller.updateFilePane();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		});
 
-    	fileData.setOnAction(ActionEvent -> {
-			System.out.println("æ–‡ä»¶å¤¹å±æ€§");
-
-		});
     }
 
     @Override
@@ -77,7 +80,7 @@ public class CatCom extends FilePaneCom {
     }
 
     @Override
-    public void mouseClickedTiwce() {
+    public void enter() {
         controller.setCurCat(this.catalogue);
         controller.updateFilePane();
     }
@@ -89,10 +92,5 @@ public class CatCom extends FilePaneCom {
     public void setCatalogue(Catalogue catalogue) {
         this.catalogue = catalogue;
     }
-    public void delCat() throws IOException {
 
-        //é€»è¾‘å±‚
-
-        server.delCat(catalogue);
-    }
 }

@@ -13,17 +13,17 @@ import java.util.TimerTask;
 
 
 public abstract class FilePaneCom extends StackPane {
-    protected Button img;   //æ˜¾ç¤ºå›¾æ ‡
-    protected Label title;  //æ˜¾ç¤ºåç§°
+    protected Button img;   //ÏÔÊ¾Í¼±ê
+    protected Label title;  //ÏÔÊ¾Ãû³Æ
     protected int clickNum;
     protected int callTimes;
     protected Controller controller;
-    public boolean isClickedflag; //ç”¨äºåˆ¤æ–­æ˜¯å¦é€‰ä¸­
+    public boolean isClickedflag; //ÓÃÓÚÅĞ¶ÏÊÇ·ñÑ¡ÖĞ
 
 
     public abstract void setImg();
 
-    public abstract void mouseClickedTiwce() throws Exception;
+    public abstract void enter() throws Exception;
 
 
     Server server;
@@ -35,13 +35,13 @@ public abstract class FilePaneCom extends StackPane {
         setController(controller);
         setServer(controller.getServer());
 
-        //è®¾ç½®è‡ªå·±çš„æ ·å¼
+        //ÉèÖÃ×Ô¼ºµÄÑùÊ½
         getStyleClass().add("filePaneComPane");
-        //è®¾ç½®å›¾ç‰‡
+        //ÉèÖÃÍ¼Æ¬
         setImg();
         setAlignment(Pos.CENTER);
 
-        //è®¾ç½®æ–‡æœ¬
+        //ÉèÖÃÎÄ±¾
         title.setText(name);
 
         title.getStyleClass().add("filePaneComTitle");
@@ -64,14 +64,14 @@ public abstract class FilePaneCom extends StackPane {
             clickEvent();
         });
 
-        //ç§»å…¥
+        //ÒÆÈë
         addEventHandler(MouseEvent.MOUSE_ENTERED, (MouseEvent event) -> {
             if(controller.getCurClickedCom() != this) {
                 turnBlue();
             }
         });
 
-        //ç§»å‡º
+        //ÒÆ³ö
         addEventHandler(MouseEvent.MOUSE_EXITED, (MouseEvent event) -> {
             if (controller.getCurClickedCom() != this) {
                 turnWhite();
@@ -82,8 +82,8 @@ public abstract class FilePaneCom extends StackPane {
     private void clickEvent(){
         if(controller.getCurClickedCom()!=null &&
                 controller.getCurClickedCom()!=this)
-            controller.getCurClickedCom().turnWhite();//å˜åŒ–clickedCom
-        isClickedflag = true; //ç”¨äºåˆ¤æ–­å·²ç»é€‰ä¸­çš„å•ä½ä¸ä¼šå†æœ‰ç§»å…¥ç§»å‡ºçš„å˜åŒ–
+            controller.getCurClickedCom().turnWhite();//±ä»¯clickedCom
+        isClickedflag = true; //ÓÃÓÚÅĞ¶ÏÒÑ¾­Ñ¡ÖĞµÄµ¥Î»²»»áÔÙÓĞÒÆÈëÒÆ³öµÄ±ä»¯
         turnDeepBlue();
         controller.setCurClickedCom(this);
 
@@ -92,7 +92,7 @@ public abstract class FilePaneCom extends StackPane {
         if (clickNum == 2) {
             //System.out.println("click twice");
             try {
-                mouseClickedTiwce();
+                enter();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -100,7 +100,7 @@ public abstract class FilePaneCom extends StackPane {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                //åŒå‡»äº‹ä»¶
+                //Ë«»÷ÊÂ¼ş
                 clickNum = 0;
                 this.cancel();
                 return;

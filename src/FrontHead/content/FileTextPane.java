@@ -19,12 +19,13 @@ public class FileTextPane extends Application {
     FlowPane root = new FlowPane();
     Controller controller;
     TextArea TA;
+    String startText;
     String latesText;
     MenuBar MB;
-    final int MENU_HEIGHT = 25;//Ëøô‰∏™ÊòØÈÄöËøáÁõëÂê¨Âô®ÊµãÈáèÂæóÂà∞„ÄÇ‰∏çÊòØÈïø‰πÖ‰πãËÆ°ÂãâÂº∫Áî®Áî®
+    final int MENU_HEIGHT = 25;//’‚∏ˆ «Õ®π˝º‡Ã˝∆˜≤‚¡øµ√µΩ°£≤ª «≥§æ√÷Æº∆√„«ø”√”√
     int test = 0;
     Server server;
-    public FileTextPane(VirtualFile file , Controller controller ,Server server){
+    public FileTextPane(VirtualFile file , Controller controller ,Server server) throws IOException {
         super();
         setController(controller);
         setServer(controller.getServer());
@@ -36,6 +37,7 @@ public class FileTextPane extends Application {
         Scene scene = new Scene(root,600,600);
         fileStage.setScene(scene);
         fileStage.show();
+        fileStage.setTitle(file.getName());
         fileStage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST,
                 windowEvent -> {
                     try {
@@ -46,29 +48,32 @@ public class FileTextPane extends Application {
                 });
     }
 
+
     private void closeTextPane(WindowEvent windowEvent) throws IOException {
 
-        if ((latesText==null)||
-                !(latesText.equals(TA.getText()))){//Ë∑ùÁ¶ªlatestTextÊúâÊîπÂä®
+
+        if(!TA.getText().equals(file.getLatestText())){
+        // (true){//æ‡¿ÎlatestText”–∏ƒ∂Ø
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.titleProperty().set("Ê≥®ÊÑèÔºÅ");
-            alert.headerTextProperty().set("ÊòØÂê¶‰øùÂ≠òÊîπÂä®");
+            alert.titleProperty().set("◊¢“‚£°");
+
+            alert.headerTextProperty().set(" «∑Ò±£¥Ê∏ƒ∂Ø");
             alert.getButtonTypes().setAll(
-                    new ButtonType("ÊòØ"),
-                    new ButtonType("Âê¶")
-//                    new ButtonType("ÂèñÊ∂à")
+                    new ButtonType(" «"),
+                    new ButtonType("∑Ò")
+//                    new ButtonType("»°œ˚")
                     );
             Optional<ButtonType> result = alert.showAndWait();
 
             switch (result.get().getText()){
-                case "ÊòØ" :{
+                case " «" :{
                     saveFile();
                     break;
                 }
-                case "Âê¶" :{
+                case "∑Ò" :{
                     break;
                 }
-//                case "ÂèñÊ∂à" :{
+//                case "»°œ˚" :{
 //                    windowEvent.
 //                    System.out.println("can");
 //                    return;
@@ -80,9 +85,9 @@ public class FileTextPane extends Application {
     }
 
     private void saveFile() throws IOException {
-        latesText = TA.getText();
-        file.setLatestText(latesText);
+        file.setLatestText(TA.getText());
         server.saveFile(file);
+        controller.updateOpenFilesTable();
         //System.out.println("saveFile " + server.saveFile(file));
     }
 
@@ -95,6 +100,7 @@ public class FileTextPane extends Application {
         this.start(fileStage);
         initMenu();
         initTextArea();
+        saveFile();
     }
 
     private void initTextArea() {
@@ -102,7 +108,8 @@ public class FileTextPane extends Application {
         TA.getStyleClass().add("textArea");
         TA.setPrefWidth(root.getScene().getWidth());
         TA.setPrefHeight(root.getScene().getHeight()-MENU_HEIGHT);
-        TA.setText(server.readFile(file.getFirstBlock()));
+        TA.setText(file.getLatestText());
+        startText = TA.getText();
         root.getChildren().add(TA);
     }
 
@@ -136,4 +143,5 @@ public class FileTextPane extends Application {
     public void setServer(Server server) {
         this.server = server;
     }
+
 }

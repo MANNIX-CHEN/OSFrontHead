@@ -1,18 +1,19 @@
 package FrontHead.content.component;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import BackGround.Server;
 import FrontHead.content.FileTextPane;
 import FrontHead.content.VirtualFile;
-import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.FlowPane;
-import javafx.stage.Stage;
 import sample.Controller;
 
 public class FileCom extends FilePaneCom {
@@ -22,42 +23,119 @@ public class FileCom extends FilePaneCom {
     public FileCom(String name , VirtualFile file , Controller controller) {
         super(name , controller);
         setFile(file);
+        //title.setText(file.getName()+ "." +file.getType() );
 
         fileContextMenu2=new ContextMenu();
-    	openFile = new MenuItem("æ‰“å¼€");
-    	delFile = new MenuItem("åˆ é™¤");
-    	fileData = new MenuItem("å±æ€§");
-    	renameFile = new MenuItem("é‡å‘½å");
+    	openFile = new MenuItem("´ò¿ª");
+    	delFile = new MenuItem("É¾³ı");
+    	fileData = new MenuItem("ÊôĞÔ");
+    	renameFile = new MenuItem("ÖØÃüÃû");
     	fileContextMenu2.getItems().addAll(openFile,delFile,fileData,renameFile);
 
     	initListener();
 
     	openFile.setOnAction(ActionEvent -> {
-			System.out.println("æ‰“å¼€æ–‡ä»¶");
+			//System.out.println("´ò¿ªÎÄ¼ş");
+			try {
+				enter();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		});
 
     	delFile.setOnAction(ActionEvent -> {
-			System.out.println("åˆ é™¤æ–‡ä»¶");
+			//System.out.println("É¾³ıÎÄ¼ş");
+
+			try {
+				file.getCatalogue().delFileEntry(file);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			controller.updateFilePane();
 		});
 
     	renameFile.setOnAction(ActionEvent -> {
-			System.out.println("é‡å‘½åæ–‡ä»¶");
 			TextInputDialog dialog=new TextInputDialog();
-    		dialog.setTitle("é‡å‘½åæ–‡ä»¶");
-    		dialog.setHeaderText("é‡å‘½åæ–‡ä»¶");
-    		dialog.setContentText("è¯·è¾“å…¥æ–°æ–‡ä»¶å:");
+    		dialog.setTitle("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setHeaderText("ÖØÃüÃûÎÄ¼ş");
+    		dialog.setContentText("ÇëÊäÈëĞÂÎÄ¼şÃû:");
     		Optional<String> result = dialog.showAndWait();
     		if (result.isPresent()){
-    			System.out.println("æ–°æ–‡ä»¶åä¸ºï¼š"+result.get());
-    		}
+    			//System.out.println("ĞÂÎÄ¼şÃûÎª£º"+result.get());
+
+				try {
+					file.changeInfo(result.get());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				controller.updateFilePane();
+
+			}
 		});
 
     	fileData.setOnAction(ActionEvent -> {
-			System.out.println("æ–‡ä»¶å±æ€§");
+
+			try {
+				showFileATTR();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		});
 
     }
-    public void initListener(){
+
+	private void showFileATTR() throws IOException {
+		List<String> choices = new ArrayList<>();
+		choices.add("ÏµÍ³ÎÄ¼ş");
+		choices.add("Ö»¶ÁÎÄ¼ş");
+		choices.add("¶ÁĞ´ÎÄ¼ş");
+
+		ChoiceDialog<String> ATTRdialog;
+		switch (file.getATTRcode()){
+			case (Server.READ_WRITE_FILE):
+				ATTRdialog = new ChoiceDialog<>(choices.get(2), choices);
+				break;
+
+			case (Server.READ_ONLY_FILE):
+				ATTRdialog = new ChoiceDialog<>(choices.get(1), choices);
+				break;
+
+			case (Server.SYS_FILE):
+				ATTRdialog = new ChoiceDialog<>(choices.get(0), choices);
+				break;
+
+			default:
+				throw new IllegalStateException("Unexpected value: " + file.getATTRcode());
+		}
+
+		ATTRdialog.setTitle("ÎÄ¼şÊôĞÔ");
+
+		ATTRdialog.setHeaderText(String.format("" +
+				"%-6s%c  %-3s\n" +
+				"%-6s%c  %-3s\n" +
+				"%-6s%c  %-3d\n" +
+				"%-6s%c  %-3d\n",
+				"ÎÄ¼şÃû³Æ",':',file.getName(),
+				"ÎÄ¼şÎ»ÖÃ",':',file.getAbsPath(),
+				"ÆğÊ¼ÅÌ¿é",':',file.getFirstBlock(),
+				"ÎÄ¼ş³¤¶È",':',file.getLatestText().length()/64 + 1));
+		ATTRdialog.setContentText("ÇëÑ¡ÔñÎÄ¼şÊôĞÔ");
+		ATTRdialog.showAndWait();
+
+		switch (ATTRdialog.getSelectedItem()){
+			case ("ÏµÍ³ÎÄ¼ş"):
+				file.setATTRcode(Server.SYS_FILE);
+				break;
+			case ("Ö»¶ÁÎÄ¼ş"):
+				file.setATTRcode(Server.READ_ONLY_FILE);
+				break;
+			case ("¶ÁĞ´ÎÄ¼ş"):
+				file.setATTRcode(Server.READ_WRITE_FILE);
+				break;
+		}
+	}
+
+	public void initListener(){
     	img.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
 			if (event.getButton() == MouseButton.SECONDARY) {
 				controller.contextFlag=false;
@@ -88,7 +166,7 @@ public class FileCom extends FilePaneCom {
     }
 
     @Override
-    public void mouseClickedTiwce() throws Exception {
+    public void enter() throws Exception {
         controller.openFile(file);
         new FileTextPane(file , controller , controller.getServer()).init();
     }

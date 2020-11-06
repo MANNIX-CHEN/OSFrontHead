@@ -1,9 +1,11 @@
 package FrontHead.content;
 
 import BackGround.Server;
+import FrontHead.content.component.FilePaneCom;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -66,6 +68,39 @@ public class Catalogue implements CatEntry{
         this.getFxTreeItem().setGraphic(new ImageView(CLOSE_FLODER_IMG));
 
     }
+    public void delCatEntry(Catalogue childrenCat) throws IOException {
+
+
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i).toString().matches("(.*)Catalogue(.*)")){
+                childrenCat.delCatEntry((Catalogue) entries.get(i));
+            }else {
+                childrenCat.delFileEntry((VirtualFile) entries.get(i));
+            }
+        }//使用foreach会报错
+
+
+        //需要删除子目录的所有内容
+        if (!entries.isEmpty())
+            entries.remove(childrenCat);
+        catItems.remove(childrenCat.getFxTreeItem());
+        updateTreeView();
+
+        //逻辑层
+
+        server.delCat(childrenCat);
+        //diskFile层删除
+    }
+    public void delFileEntry(VirtualFile childrenFile) throws IOException {
+        entries.remove(childrenFile);
+        fileItems.remove(childrenFile.getFxTreeItem());
+        updateTreeView();
+        //逻辑层删除
+
+
+        server.delFile(childrenFile);
+        //diskFile层删除
+    }
     public int addFileEntry(VirtualFile childrenFile) throws IOException {
         /*描述：添加文件目录项
         * 返回 -1 表示添加失败
@@ -112,6 +147,10 @@ public class Catalogue implements CatEntry{
         //在程序层面添加目录项
 
 
+    }
+    public void changeName(String newName) throws IOException {
+        setName(newName);
+        server.changeCat(this);
     }
 
     public void updateTreeView() {

@@ -33,6 +33,9 @@ public class Server {
     public final static String TEST_FILE_PATH = "src/BackGround/testFile";
     public final static String EMPTY_ENTRY = "$0000000";//空目录项
 
+    public final static int SYS_FILE = 1;
+    public final static int READ_ONLY_FILE = 2;
+    public final static int READ_WRITE_FILE = 4;
     public boolean isReading() {
         return Reading;
     }
@@ -116,8 +119,8 @@ public class Server {
                 //如果是文件目录项
                 Map<String,byte[]> fm = decodeFileEntry(entryBytes);
                 VirtualFile file =
-                        new VirtualFile(new String(fm.get("name")),catalogue,
-                                catalogue.getAbsPath(),this,fm.get("firstBlock")[0]);
+                        new VirtualFile(new String(fm.get("name")),fm.get("ATTR")[0],new String(fm.get("type")),
+                                catalogue, catalogue.getAbsPath(),this,fm.get("firstBlock")[0]);
                 catalogue.addFileEntry(file);
             }else {
                 //如果是登记目录项
@@ -154,8 +157,8 @@ public class Server {
 
         /*
          * cat目录项信息 (null表示未使用，填写 0 )
-         * 内容目录   : | 文  件  名 |  类型名 | 属性 | 起始盘块号 |  文件长度 |
-         * byteskey  : | [0][1][2] | [3][4] | [5] |    [6]    |    [7]   |
+         * 内容目录   : | 文  件  名 |   属性  | ATTR | 起始盘块号 |  文件长度 |
+         * byteskey  : | [0][1][2] | [3][4] | [5]  |    [6]    |    [7]   |
          * */
         byte[] entryBytes = new byte[0];
         entryBytes = mergeBytes(entryBytes, file.getName().getBytes(), 3);
@@ -172,7 +175,7 @@ public class Server {
         //int needBlock = text.length()/64+1;
         int haveBlock = 0;
         //curFile.setFileLength(needBlock);
-        file.setAttribute("1");//文件属性怎么规定
+        file.setATTRcode(READ_WRITE_FILE);//文件属性怎么规定
         {
             //将文件属性的内容写到curCatalogue
         }
@@ -351,23 +354,17 @@ public class Server {
                 entryBytes = mergeBytes(entryBytes,new byte[]{8},1);//目录属性
                 entryBytes = mergeBytes(entryBytes,new byte[]{(byte) catalogue.getFirstBlock()},1);
                 entryBytes = mergeBytes(entryBytes,new byte[1],1);
-                int status = writeEntry(catalogue.getParent(),entryBytes);
+                int status = writeEntry(catalogue.getParent(),entryBytes,i);
                 //生成目录项，并加入父目录
             }else {
                 //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
             }
         }
 
-
-
-
-
         //将目录项写到diskFile中的对应位置
-
-
-
     }
     public void delFile(VirtualFile file) throws IOException {
+
         /*
          * 这个方法和delCat结构是差不多的，可以互相参照
          * 1. 获取父录file.getCatalogue()
@@ -376,17 +373,9 @@ public class Server {
          * 3. 获取起始盘块号码file.getFirstBlock()
          * 4. 将fat表对应的val置0（表示该盘块空闲）
          * */
-        /*
-         * 这个方法和delCat结构是差不多的，可以互相参照
-         * 1. 获取父录file.getCatalogue()
-         * 2. 获取父目录在diskFile的信息删除对应的目录项
-         * （可以使用正则表达式匹配目录名的初始位置，并计算目录项的起始，并清空）
-         * 3. 获取起始盘块号码file.getFirstBlock()
-         * 4. 将fat表对应的val置0（表示该盘块空闲）
-         * */
-        Catalogue parfile = file.getCatalogue();
+        Catalogue parentCat = file.getCatalogue();
         //获取父目录
-        byte[] parfileInfo = readBlock(parfile.getFirstBlock());
+        byte[] parfileInfo = readBlock(parentCat.getFirstBlock());
         //获取父目录在diskFile的信息
 
         for (int i = 0; i < 8; i++) {
@@ -394,22 +383,27 @@ public class Server {
             for (int j = 0; j < 8; j++) {
                 entryBytes[j] = parfileInfo[i*8+j];
             }//获取单个目录项
-            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            String curCatName = new String(decodeFileEntry(entryBytes).get("name"));
             //获取当前文件的名字
-
             if (curCatName.equals(file.getName())){
                 //如果当前目录项匹配到需要del的文件
-                removeEntry(parfile,i);
+                removeEntry(parentCat,i);
                 //移除匹配到的目录项
             }else {
                 //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
             }
         }
-        fatTable[file.getFirstBlock()] = 0;
-        updateFat();
-        //获取起始盘块号
+
+        int termBlock = file.getFirstBlock();
+        while (termBlock!=-1){
+            int x = fatTable[termBlock];
+            fatTable[termBlock] = 0;
+            updateFat();
+            termBlock = x;
+        }//释放所有磁盘块
     }
     public void changeFileATTR (VirtualFile file) throws IOException {
+
         /* 这个方法需要与saveFile区分开，一个是修改文件的内容，一个是修改文件的属性
          * 同理这个方法和changeCat结构是差不多的，可以互相参照
          *
@@ -419,39 +413,35 @@ public class Server {
          * 实现方法2：先依旧按更该文件名的功能来做，后续可能有更多的需求
          * 所以找到对应的目录项，将对应的目录名字的部分修改即可
          * */
-        /* 这个方法需要与saveFile区分开，一个是修改文件的内容，一个是修改文件的属性
-         * 同理这个方法和changeCat结构是差不多的，可以互相参照
-         *
-         * 实现方法1：直接先调用一次 delFile，再调用一次addFile
-         *（还需要更新file的firstBlock）
-         *
-         * 实现方法2：先依旧按更该文件名的功能来做，后续可能有更多的需求
-         * 所以找到对应的目录项，将对应的目录名字的部分修改即可
-         * */
-        Catalogue parfile = file.getCatalogue();
+        Catalogue parentCat = file.getCatalogue();
         //获取父目录
-        byte[] parfileInfo = readBlock(parfile.getFirstBlock());
+        byte[] parfileInfo = readBlock(parentCat.getFirstBlock());
         //获取父目录在diskFile的信息
 
         for (int i = 0; i < 8; i++) {
-            byte [] entryBytes = new byte[8];
+            byte [] curEntryBytes = new byte[8];
             for (int j = 0; j < 8; j++) {
-                entryBytes[j] = parfileInfo[i*8+j];
+                curEntryBytes[j] = parfileInfo[i*8+j];
             }//获取单个目录项
-            String curCatName = new String(decodeCatEntry(entryBytes).get("name"));
+            //String curCatName = new String(decodeFileEntry(entryBytes).get("name"));
+            int curfirstBlock = decodeFileEntry(curEntryBytes).get("firstBlock")[0];
             //获取当前文件的名字
 
-            if (curCatName.equals(file.getName())){
+            if (file.getFirstBlock() == curfirstBlock){
                 //如果当前目录项匹配到需要del的文件
-                removeEntry(parfile,i);
+                byte[] entryBytes  = new byte[0];//准备写入的目录项（写到当前目录下）
+                entryBytes = mergeBytes(entryBytes,file.getName().getBytes(),3); //目录名
+                entryBytes = mergeBytes(entryBytes,new byte[2],2);  //null
+                entryBytes = mergeBytes(entryBytes,new byte[]{(byte) file.getATTRcode()},1);//目录属性
+                entryBytes = mergeBytes(entryBytes,new byte[]{(byte) file.getFirstBlock()},1);
+                entryBytes = mergeBytes(entryBytes,new byte[]{(byte)(file.getLatestText().length()/64+1)},1);
+                int status = writeEntry(file.getCatalogue(),entryBytes,i);
                 //移除匹配到的目录项
             }else {
+
                 //不必考虑找不到cat的情形，因为传入了一个catlogue就说明该目录一定存在了
             }
         }
-        VirtualFile newfile = new VirtualFile();
-        addFile(newfile);
-        //先删除文件 后新建文件  更新一次fat表 意思是先删掉这个文件  然后再用addFile（）新建
     }
 
     public int saveFile(VirtualFile file) throws IOException {
@@ -465,11 +455,9 @@ public class Server {
         while (termBlock!=-1){
             int x = fatTable[termBlock];
             fatTable[termBlock] = 0;
-            updateFat();
             termBlock = x;
         }//将磁盘块先释放
 
-        int lastFatNum = curBlock;//记录上一次的盘块号
         int textNum = 0;//第几个text剪切段，因为存在缓冲区，text可能要分多次写入磁盘
 
         writeBuffer = new byte[64];
@@ -516,9 +504,15 @@ public class Server {
         *
         * */
         Map <String, byte[]> catBytesMap = new HashMap<>();
-        byte[] name = new byte[3];
-        for (int i = 0; i < 3; i++) {
-            name[i] = entryBytes[i];
+        int nameIndex = 0;
+        for (; nameIndex < 3; nameIndex++) {
+            if (entryBytes[nameIndex] == 0 )
+                break;
+        }
+
+        byte[] name = new byte[nameIndex];
+        for (int i = 0; i < nameIndex; i++) {
+                name[i] = entryBytes[i];
         }//获取name
         byte[] ATTR = new byte[]{entryBytes[5]};
         byte[] firstBlock = new byte[]{entryBytes[6]};
@@ -533,13 +527,18 @@ public class Server {
          * name,type,ATTR,firstBlock,length
          * */
         Map <String, byte[]> fileBytesMap = new HashMap<>();
-        byte[] name = new byte[3];
-        for (int i = 0; i < 3; i++) {
+        int nameIndex = 0;
+        for (; nameIndex < 3; nameIndex++) {
+            if (entryBytes[nameIndex] == 0 )
+                break;
+        }
+        byte[] name = new byte[nameIndex];
+        for (int i = 0; i < nameIndex; i++) {
             name[i] = entryBytes[i];
         }//获取name
         byte[] type = new byte[2];
         for (int i = 0; i < 2; i++) {
-            name[i] = entryBytes[i];
+            type[i] = entryBytes[3+i];
         }//获取type
         byte[] ATTR = new byte[]{entryBytes[5]};
         byte[] firstBlock = new byte[]{entryBytes[6]};
@@ -605,7 +604,6 @@ public class Server {
         //获取偏移量
 
         raf.write(blankBytes);
-
         raf.close();
 
     }
@@ -654,12 +652,13 @@ public class Server {
         /*将 ！已经修改好！ 的fat表更新到diskFile中,并且更新展示主程序的*/
         RandomAccessFile raf = new RandomAccessFile(new File(DISK_FILE_PATH),"rw");
         byte[] wirteBuf = new byte[128];
-        controller.updateFat(fatTable);
+
         for (int i = 0; i < 128; i++) {
             wirteBuf[i] = (byte) fatTable[i];
         }
         raf.write(wirteBuf);
         raf.close();
+        controller.updateFatShow(fatTable);
     }
     public byte[] readBlock(int blocksnum) throws IOException {
         /*读取对应blocknum的块号内容*/

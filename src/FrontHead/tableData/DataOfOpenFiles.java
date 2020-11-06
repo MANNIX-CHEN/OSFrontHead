@@ -17,9 +17,8 @@ public final class DataOfOpenFiles {
     public DataOfOpenFiles(VirtualFile file){
         setFileName(file.getName());
         setFilePath(file.getAbsPath());
-
         setFirstBlock(file.getFirstBlock());
-        setFileLength(file.getFileLength());
+        setFileLength(file.getLatestText().length()/64 + 1);
         setOperateType(file.getAttribute());
 
     }

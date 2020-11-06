@@ -14,7 +14,9 @@ public class VirtualFile implements CatEntry {
     private int firstBlock;
     private int fileLength;
     private String attribute;
+    private int ATTRcode;
     private String latestText;
+    private String type;
 
     private Server server;
     private Catalogue catalogue ;
@@ -29,29 +31,49 @@ public class VirtualFile implements CatEntry {
     public VirtualFile(String name , Catalogue catalogue , String absPant , Server server) throws IOException {
         setName(name);
         setCatalogue(catalogue);
-        setAbsPath(absPant);
+        setAbsPath(absPant + "\\" + getName());
         setServer(server);
 
         setFirstBlock(server.findNextFreeBlock());
-        getServer().addFile(this);
-
         setLatestText(new String());
 
+        getServer().addFile(this);
+        setATTRcode(Server.READ_WRITE_FILE);
+
+
         setFxTreeItem(new TreeItem<>(name));
+
     }
-    public VirtualFile(String name , Catalogue catalogue , String absPant , Server server , int firstBlock) throws IOException {
+    public VirtualFile(String name , int ATTRcode  ,String type, Catalogue catalogue , String absPant , Server server , int firstBlock) throws IOException {
         setName(name);
         setCatalogue(catalogue);
-        setAbsPath(absPant);
+        setAbsPath(absPant + "\\" + getName());
+
         setServer(server);
 
-       // getServer().addFile(this);
+
         setFirstBlock(firstBlock);
-        setLatestText(new String());
+        setLatestText(server.readFile(getFirstBlock()));
+        setATTRcode(ATTRcode);
 
         setFxTreeItem(new TreeItem<>(name));
     }
 
+    public void changeInfo(String newName) throws IOException {
+        setName(newName);
+        server.changeFileATTR(this);
+    }
+
+
+    public int getATTRcode() {
+        return ATTRcode;
+    }
+
+    public void setATTRcode(int ATTRcode) throws IOException {
+        this.ATTRcode = ATTRcode;
+        setAttribute(ATTRcode);
+        server.changeFileATTR(this);
+    }
 
     public String getLatestText() {
         return latestText;
@@ -80,6 +102,18 @@ public class VirtualFile implements CatEntry {
     public String getAttribute() {
         return attribute;
     }
+
+    public void setAttribute(int ATTRCode) {
+        switch (ATTRCode){
+            case 1: this.setAttribute("system");
+                return ;
+            case 2: this.setAttribute("readOnly");
+                return ;
+            case 4: this.setAttribute("rw");
+                return ;
+        }
+    }
+
 
     public void setAttribute(String attribute) {
         this.attribute = attribute;
@@ -126,5 +160,13 @@ public class VirtualFile implements CatEntry {
 
     public void setServer(Server server) {
         this.server = server;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
