@@ -238,7 +238,7 @@ public class Controller {
         Matcher mSlash = Pattern.compile("(\\\\)+").matcher(s);
         //ÊÇ·ñºÏ·¨
         if(mDoller.find() || mDot.find() || mSlash.find()
-                 || s.length()>3 ||server.findNextFreeBlock()!=-1){
+                 || s.length()>3 ||server.findNextFreeBlock()==-1){
             return false;
         }
 
